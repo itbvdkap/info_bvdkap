@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>info.benhvienanphu.vn - Cổng Báo Cáo & Ý Kiến Đóng Góp Bệnh Viện An Phú</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .bg-anphu { background-color: #0284c7; }
+    .text-anphu { color: #0284c7; }
+    .border-anphu { border-color: #0284c7; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- TOP HEADER -->
+  <header class="bg-gradient-to-r from-sky-700 to-sky-900 text-white shadow-lg sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('submit')">
+        <div class="w-12 h-12 bg-white text-sky-700 rounded-full flex items-center justify-center font-bold text-2xl shadow">
+          <i class="fa-solid fa-hospital-user"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight">BỆNH VIỆN AN PHÚ</h1>
+          <p class="text-xs text-sky-200 font-medium">info.benhvienanphu.vn • Cổng Báo Cáo & Ý Kiến Đóng Góp</p>
+        </div>
+      </div>
+
+      <!-- MAIN NAVIGATION TABS -->
+      <nav class="flex items-center bg-sky-800/60 p-1 rounded-xl text-sm font-medium">
+        <button id="tabBtnSubmit" onclick="switchTab('submit')" class="px-4 py-2 rounded-lg transition-all flex items-center space-x-2 bg-white text-sky-800 shadow">
+          <i class="fa-solid fa-paper-plane"></i>
+          <span>Gửi Ý Kiến</span>
+        </button>
+        <button id="tabBtnTrack" onclick="switchTab('track')" class="px-4 py-2 rounded-lg transition-all flex items-center space-x-2 text-sky-100 hover:text-white">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <span>Tra Cứu</span>
+        </button>
+        <button id="tabBtnAdmin" onclick="switchTab('admin')" class="px-4 py-2 rounded-lg transition-all flex items-center space-x-2 text-sky-100 hover:text-white">
+          <i class="fa-solid fa-user-shield"></i>
+          <span>Quản Trị Lãnh Đạo</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto w-full px-4 py-6 flex-grow">
+
+    <!-- ========================================== -->
+    <!-- TAB 1: FORM GỬI BÁO CÁO / Ý KIẾN NỘI BỘ   -->
+    <!-- ========================================== -->
+    <section id="tabSubmit" class="block max-w-3xl mx-auto">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="bg-sky-50 border-b border-sky-100 p-6 text-center">
+          <span class="inline-block px-3 py-1 bg-sky-100 text-sky-800 text-xs font-semibold rounded-full mb-2">Dành cho Cán bộ Nhân viên</span>
+          <h2 class="text-2xl font-bold text-slate-800">Gửi Báo Cáo & Ý Kiến Đóng Góp</h2>
+          <p class="text-sm text-slate-600 mt-1">Mọi ý kiến của bạn góp phần xây dựng Bệnh viện An Phú ngày càng phát triển vững mạnh.</p>
+        </div>
+
+        <form id="feedbackForm" onsubmit="handleFormSubmit(event)" class="p-6 space-y-6">
+
+          <!-- ANONYMOUS TOGGLE -->
+          <div class="bg-sky-50/70 border border-sky-200 rounded-xl p-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 bg-sky-600 text-white rounded-lg flex items-center justify-center text-lg">
+                <i class="fa-solid fa-user-lock"></i>
+              </div>
+              <div>
+                <h3 class="font-semibold text-slate-800 text-sm">Gửi Ẩn Danh (Bảo mật 100%)</h3>
+                <p class="text-xs text-slate-500">Hệ thống hoàn toàn không lưu vết danh tính của bạn</p>
+              </div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="isAnonymous" class="sr-only peer" checked onchange="toggleAnonFields()">
+              <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-600"></div>
+            </label>
+          </div>
+
+          <!-- SENDER INFO FIELDS (HIDDEN WHEN ANONYMOUS) -->
+          <div id="senderFields" class="hidden grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div>
+              <label class="block text-xs font-medium text-slate-700 mb-1">Họ & Tên nhân viên</label>
+              <input type="text" id="senderName" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none" placeholder="Nguyễn Văn A">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-700 mb-1">Số điện thoại</label>
+              <input type="text" id="senderPhone" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none" placeholder="0901234567">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-700 mb-1">Email nội bộ</label>
+              <input type="email" id="senderEmail" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none" placeholder="nv@benhvienanphu.vn">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- CATEGORY DROPDOWN -->
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-1">Mục mục / Mục đích báo cáo <span class="text-red-500">*</span></label>
+              <select id="categoryId" required class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none bg-white">
+                <option value="">-- Chọn loại báo cáo --</option>
+              </select>
+            </div>
+
+            <!-- DEPARTMENT DROPDOWN -->
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-1">Khoa / Phòng ban liên quan <span class="text-red-500">*</span></label>
+              <select id="departmentId" required class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none bg-white">
+                <option value="">-- Chọn Khoa/Phòng --</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- PRIORITY LEVEL -->
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">Mức độ khẩn cấp <span class="text-red-500">*</span></label>
+            <div class="grid grid-cols-3 gap-3">
+              <label class="flex items-center justify-center p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition peer-checked:border-sky-500">
+                <input type="radio" name="priority" value="normal" checked class="text-sky-600 focus:ring-sky-500 mr-2">
+                <span class="text-sm font-medium text-slate-700">📌 Bình thường</span>
+              </label>
+              <label class="flex items-center justify-center p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-amber-50 transition">
+                <input type="radio" name="priority" value="high" class="text-amber-600 focus:ring-amber-500 mr-2">
+                <span class="text-sm font-medium text-amber-700">⚠️ Quan trọng</span>
+              </label>
+              <label class="flex items-center justify-center p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-red-50 transition">
+                <input type="radio" name="priority" value="urgent" class="text-red-600 focus:ring-red-500 mr-2">
+                <span class="text-sm font-medium text-red-700">🚨 Khẩn cấp</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- TITLE -->
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1">Tiêu đề ý kiến / báo cáo <span class="text-red-500">*</span></label>
+            <input type="text" id="feedbackTitle" required class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none" placeholder="Ví dụ: Đề xuất cải tiến thời gian trả kết quả Xét nghiệm tại Khoa Khám Bệnh">
+          </div>
+
+          <!-- CONTENT -->
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1">Nội dung chi tiết <span class="text-red-500">*</span></label>
+            <textarea id="feedbackContent" required rows="5" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none" placeholder="Mô tả cụ thể sự việc, thời gian, nguyên nhân hoặc đề xuất hướng giải quyết với Lãnh đạo..."></textarea>
+          </div>
+
+          <!-- ATTACHMENT -->
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1">Hình ảnh / Tài liệu đính kèm (nếu có)</label>
+            <input type="file" id="feedbackAttachment" accept="image/*,.pdf,.doc,.docx,.xlsx" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100">
+          </div>
+
+          <!-- SUBMIT BUTTON -->
+          <div class="pt-2">
+            <button type="submit" id="btnSubmitFeedback" class="w-full py-3.5 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center space-x-2 text-base">
+              <i class="fa-solid fa-paper-plane"></i>
+              <span>GỬI BÁO CÁO CHO LÃNH ĐẠO</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- SUCCESS MODAL (TRACKING CODE POPUP) -->
+    <div id="modalSuccess" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+      <div class="bg-white rounded-3xl max-w-md w-full p-6 text-center shadow-2xl animate-fade-in space-y-4">
+        <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-3xl">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <h3 class="text-xl font-bold text-slate-800">Gửi Ý Kiến Thành Công!</h3>
+        <p class="text-xs text-slate-600">Báo cáo của bạn đã được chuyển đến Ban Giám Đốc Bệnh Viện An Phú và gửi cảnh báo tới nhóm Telegram Lãnh đạo.</p>
+
+        <div class="bg-slate-100 p-4 rounded-2xl border border-slate-200 space-y-2">
+          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">MÃ TRA CỨU TIẾN ĐỘ</span>
+          <div class="flex items-center justify-center space-x-2">
+            <span id="displayTrackingCode" class="text-2xl font-extrabold text-sky-700 tracking-widest">AP-2026-XXXX</span>
+            <button onclick="copyTrackingCode()" title="Sao chép" class="p-2 bg-white text-slate-600 rounded-lg hover:bg-sky-50 hover:text-sky-600 shadow-sm border border-slate-200">
+              <i class="fa-regular fa-copy"></i>
+            </button>
+          </div>
+          <p class="text-[11px] text-amber-600 font-medium">⚠️ Hãy lưu lại mã này để kiểm tra câu trả lời từ Lãnh đạo!</p>
+        </div>
+
+        <div class="flex space-x-3 pt-2">
+          <button onclick="closeSuccessModal()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-sm">Gửi tiếp ý kiến khác</button>
+          <button onclick="goToTrackWithCode()" class="flex-1 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-xl text-sm shadow">Tra cứu ngay</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: TRA CỨU TIẾN ĐỘ Ý KIẾN              -->
+    <!-- ========================================== -->
+    <section id="tabTrack" class="hidden max-w-3xl mx-auto space-y-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 text-center space-y-4">
+        <h2 class="text-xl font-bold text-slate-800">Tra Cứu Phản Hồi Từ Lãnh Đạo</h2>
+        <p class="text-xs text-slate-500">Nhập mã tra cứu duy nhất được cấp khi gửi báo cáo để xem tiến độ và ý kiến chỉ đạo.</p>
+
+        <div class="flex max-w-md mx-auto space-x-2">
+          <input type="text" id="inputTrackCode" class="flex-1 px-4 py-3 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 uppercase tracking-widest font-bold text-center" placeholder="Nhập mã (ví dụ: AP-20260821-X9K2)">
+          <button onclick="handleTrackSearch()" class="px-6 py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl shadow transition">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- TRACK RESULT DISPLAY -->
+      <div id="trackResultContainer" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6">
+        <div class="flex flex-wrap justify-between items-center border-b border-slate-100 pb-4 gap-2">
+          <div>
+            <span class="text-xs text-slate-400 font-medium">Mã tra cứu:</span>
+            <span id="resTrackingCode" class="text-lg font-extrabold text-sky-700 ml-2">AP-XXXX</span>
+          </div>
+          <div id="resStatusBadge">
+            <!-- Badge inserted dynamically -->
+          </div>
+        </div>
+
+        <div class="space-y-3 text-sm">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs bg-slate-50 p-3 rounded-xl border border-slate-100">
+            <div><span class="text-slate-400">Khoa/Phòng:</span> <strong id="resDept" class="text-slate-700">--</strong></div>
+            <div><span class="text-slate-400">Phân loại:</span> <strong id="resCat" class="text-slate-700">--</strong></div>
+            <div><span class="text-slate-400">Mức độ khẩn:</span> <span id="resPriority">--</span></div>
+            <div><span class="text-slate-400">Thời gian gửi:</span> <span id="resCreatedAt" class="text-slate-600">--</span></div>
+          </div>
+
+          <div>
+            <h4 id="resTitle" class="font-bold text-base text-slate-800">--</h4>
+            <p id="resContent" class="text-slate-600 mt-2 whitespace-pre-wrap bg-slate-50/50 p-3 rounded-xl border border-slate-100">--</p>
+          </div>
+
+          <div id="resAttachmentBox" class="hidden">
+            <a id="resAttachmentLink" href="#" target="_blank" class="inline-flex items-center space-x-2 text-xs font-semibold text-sky-600 hover:underline bg-sky-50 px-3 py-2 rounded-lg">
+              <i class="fa-solid fa-paperclip"></i>
+              <span>Xem tệp minh chứng đính kèm</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- LEADERSHIP RESPONSE BOX -->
+        <div class="border-t border-slate-200 pt-5 space-y-3">
+          <div class="flex items-center space-x-2 text-sky-800 font-bold text-base">
+            <i class="fa-solid fa-user-shield text-sky-600"></i>
+            <span>Ý KIẾN CHỈ ĐẠO & PHẢN HỒI TỪ BAN GIÁM ĐỐC</span>
+          </div>
+
+          <div id="resResponseBox" class="bg-sky-50 border border-sky-200 rounded-2xl p-4 text-sm text-sky-950 min-h-[80px]">
+            <p id="resResponseText" class="whitespace-pre-wrap text-slate-700">Đang chờ Ban Giám Đốc xem xét và phản hồi...</p>
+            <div id="resResponseMeta" class="hidden text-xs text-sky-700/80 mt-3 pt-2 border-t border-sky-200 flex justify-between">
+              <span>Cập nhật bởi Ban Giám Đốc</span>
+              <span id="resResponseTime">--</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DEVICE HISTORY CONTAINER -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+          <div class="flex items-center space-x-2 text-slate-800 font-bold text-base">
+            <i class="fa-solid fa-clock-rotate-left text-sky-600"></i>
+            <span>LỊCH SỬ BÁO CÁO / Ý KIẾN ĐÃ GỬI TỪ MÁY NÀY</span>
+          </div>
+          <button onclick="clearDeviceHistory()" class="text-xs text-slate-400 hover:text-red-600 font-medium transition flex items-center space-x-1">
+            <i class="fa-solid fa-trash-can"></i>
+            <span>Xóa lịch sử</span>
+          </button>
+        </div>
+
+        <div id="deviceHistoryList" class="space-y-3">
+          <!-- Dynamically populated from localStorage -->
+          <div class="text-center py-6 text-slate-400 text-xs">
+            <i class="fa-solid fa-folder-open text-2xl mb-2 block"></i>
+            Chưa có báo cáo nào được lưu trên máy này.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: CỔNG QUẢN TRỊ LÃNH ĐẠO (ADMIN)       -->
+    <!-- ========================================== -->
+    <section id="tabAdmin" class="hidden space-y-6">
+
+      <!-- LOGIN FORM (IF NOT AUTHENTICATED) -->
+      <div id="adminLoginForm" class="max-w-md mx-auto bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-5">
+        <div class="text-center space-y-1">
+          <div class="w-12 h-12 bg-sky-100 text-sky-700 rounded-full flex items-center justify-center mx-auto text-2xl mb-2">
+            <i class="fa-solid fa-user-shield"></i>
+          </div>
+          <h2 class="text-xl font-bold text-slate-800">Đăng Nhập Lãnh Đạo</h2>
+          <p class="text-xs text-slate-500">Khu vực dành cho Ban Giám Đốc và Quản Trị Hệ Thống</p>
+        </div>
+
+        <form onsubmit="handleAdminLogin(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Tên đăng nhập</label>
+            <input type="text" id="loginUsername" required class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500" placeholder="ban-giam-doc hoặc admin">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Mật khẩu</label>
+            <input type="password" id="loginPassword" required class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500" placeholder="••••••••">
+          </div>
+          <button type="submit" class="w-full py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl shadow transition text-sm">
+            ĐĂNG NHẬP HỆ THỐNG
+          </button>
+        </form>
+      </div>
+
+      <!-- ADMIN DASHBOARD (AFTER LOGIN) -->
+      <div id="adminDashboard" class="hidden space-y-6">
+
+        <!-- DASHBOARD HEADER BAR -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-4">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-sky-600 text-white rounded-xl flex items-center justify-center font-bold">
+              <i class="fa-solid fa-user-check"></i>
+            </div>
+            <div>
+              <h3 id="adminUserGreeting" class="font-bold text-slate-800 text-sm">Ban Giám Đốc Bệnh Viện</h3>
+              <p class="text-xs text-slate-500">Cổng tiếp nhận & xử lý phản ánh nội bộ</p>
+            </div>
+          </div>
+
+          <div class="flex items-center space-x-2">
+            <button onclick="openNotificationModal()" class="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-xl border border-indigo-200 transition flex items-center space-x-1.5">
+              <i class="fa-solid fa-bell text-base text-amber-500"></i>
+              <span>Cấu Hình Thông Báo (Telegram/Email/Zalo)</span>
+            </button>
+            <button onclick="exportExcel()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl shadow transition flex items-center space-x-1.5">
+              <i class="fa-solid fa-file-excel"></i>
+              <span>Xuất Báo Cáo Excel</span>
+            </button>
+            <button onclick="handleLogout()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
+              <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI SUMMARY CARDS -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-3">
+            <div class="w-10 h-10 bg-sky-100 text-sky-700 rounded-xl flex items-center justify-center text-lg">
+              <i class="fa-solid fa-inbox"></i>
+            </div>
+            <div>
+              <span class="text-xs text-slate-500 font-medium">Tổng báo cáo</span>
+              <h4 id="kpiTotal" class="text-xl font-extrabold text-slate-800">0</h4>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-amber-200 shadow-sm flex items-center space-x-3">
+            <div class="w-10 h-10 bg-amber-100 text-amber-700 rounded-xl flex items-center justify-center text-lg">
+              <i class="fa-solid fa-clock-rotate-left"></i>
+            </div>
+            <div>
+              <span class="text-xs text-amber-700 font-medium">Mới tiếp nhận</span>
+              <h4 id="kpiPending" class="text-xl font-extrabold text-amber-600">0</h4>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-blue-200 shadow-sm flex items-center space-x-3">
+            <div class="w-10 h-10 bg-blue-100 text-blue-700 rounded-xl flex items-center justify-center text-lg">
+              <i class="fa-solid fa-spinner"></i>
+            </div>
+            <div>
+              <span class="text-xs text-blue-700 font-medium">Đang xử lý</span>
+              <h4 id="kpiProcessing" class="text-xl font-extrabold text-blue-600">0</h4>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-emerald-200 shadow-sm flex items-center space-x-3">
+            <div class="w-10 h-10 bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center text-lg">
+              <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div>
+              <span class="text-xs text-emerald-700 font-medium">Đã giải quyết</span>
+              <h4 id="kpiResolved" class="text-xl font-extrabold text-emerald-600">0</h4>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-red-200 shadow-sm flex items-center space-x-3 col-span-2 md:col-span-1">
+            <div class="w-10 h-10 bg-red-100 text-red-700 rounded-xl flex items-center justify-center text-lg">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div>
+              <span class="text-xs text-red-700 font-medium">Sự cố khẩn cấp</span>
+              <h4 id="kpiUrgent" class="text-xl font-extrabold text-red-600">0</h4>
+            </div>
+          </div>
+        </div>
+
+        <!-- CHARTS SECTION -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <h4 class="font-bold text-sm text-slate-800 mb-4 flex items-center space-x-2">
+              <i class="fa-solid fa-chart-pie text-sky-600"></i>
+              <span>Phân Bổ Báo Cáo Theo Chuyên Mục</span>
+            </h4>
+            <div class="h-56 relative flex items-center justify-center">
+              <canvas id="chartCategory"></canvas>
+            </div>
+          </div>
+
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <h4 class="font-bold text-sm text-slate-800 mb-4 flex items-center space-x-2">
+              <i class="fa-solid fa-chart-column text-sky-600"></i>
+              <span>Phản Ánh Theo Khoa / Phòng Ban</span>
+            </h4>
+            <div class="h-56 relative flex items-center justify-center">
+              <canvas id="chartDepartment"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEARCH & FILTER TOOLBAR -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+          <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+            <input type="text" id="filterKeyword" oninput="loadAdminFeedbacks()" class="px-3.5 py-2 text-xs border border-slate-300 rounded-xl" placeholder="Tìm tiêu đề, nội dung, mã tra cứu...">
+            
+            <select id="filterStatus" onchange="loadAdminFeedbacks()" class="px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white">
+              <option value="all">-- Tất cả trạng thái --</option>
+              <option value="pending">Mới tiếp nhận</option>
+              <option value="processing">Đang xử lý</option>
+              <option value="resolved">Đã giải quyết</option>
+              <option value="rejected">Từ chối / Khác</option>
+            </select>
+
+            <select id="filterDepartment" onchange="loadAdminFeedbacks()" class="px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white">
+              <option value="all">-- Tất cả Khoa/Phòng --</option>
+            </select>
+
+            <select id="filterCategory" onchange="loadAdminFeedbacks()" class="px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white">
+              <option value="all">-- Tất cả Phân loại --</option>
+            </select>
+
+            <select id="filterPriority" onchange="loadAdminFeedbacks()" class="px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white">
+              <option value="all">-- Tất cả mức độ --</option>
+              <option value="urgent">🚨 Khẩn cấp</option>
+              <option value="high">⚠️ Quan trọng</option>
+              <option value="normal">📌 Bình thường</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- FEEDBACKS TABLE DATA -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider">
+                <tr>
+                  <th class="p-3.5">Mã Tra Cứu</th>
+                  <th class="p-3.5">Mức Độ</th>
+                  <th class="p-3.5">Khoa/Phòng & Phân Loại</th>
+                  <th class="p-3.5">Người Gửi</th>
+                  <th class="p-3.5">Tiêu Đề & Nội Dung</th>
+                  <th class="p-3.5">Trạng Thái</th>
+                  <th class="p-3.5 text-center">Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody id="tableFeedbacks" class="divide-y divide-slate-100 text-slate-700">
+                <!-- Rows injected dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: RESPOND TO FEEDBACK (FOR LEADERSHIP) -->
+  <div id="modalRespond" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-lg text-slate-800 flex items-center space-x-2">
+          <i class="fa-solid fa-user-pen text-sky-600"></i>
+          <span>Phản Hồi & Chỉ Đạo Lãnh Đạo</span>
+        </h3>
+        <button onclick="closeRespondModal()" class="text-slate-400 hover:text-slate-600 p-1">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+
+      <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2 text-xs">
+        <div class="flex justify-between">
+          <span>Mã Tra Cứu: <strong id="modalTrackCode" class="text-sky-700 font-bold">--</strong></span>
+          <span id="modalPriority">--</span>
+        </div>
+        <div>Người gửi: <strong id="modalSender">--</strong></div>
+        <div>Khoa/Phòng: <strong id="modalDept">--</strong> • Phân loại: <strong id="modalCat">--</strong></div>
+        <div class="pt-1 border-t border-slate-200 font-bold text-sm text-slate-800" id="modalTitle">--</div>
+        <div class="text-slate-600 whitespace-pre-wrap bg-white p-3 rounded-lg border border-slate-200 text-xs" id="modalContent">--</div>
+        <div id="modalAttachmentBox" class="hidden pt-1">
+          <a id="modalAttachmentLink" href="#" target="_blank" class="text-sky-600 font-semibold hover:underline flex items-center space-x-1">
+            <i class="fa-solid fa-file-arrow-down"></i>
+            <span>Tải về / Xem tệp đính kèm</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- AUDIT LOG & DEVICE TRACKING FOR ADMIN ONLY -->
+      <div id="modalAuditBox" class="hidden bg-amber-50/70 border border-amber-200 rounded-xl p-3 text-xs space-y-1 text-amber-950">
+        <div class="font-bold flex items-center space-x-1.5 text-amber-900">
+          <i class="fa-solid fa-shield-halved text-amber-600"></i>
+          <span>VẾT KIỂM TOÁN THIẾT BỊ BÁO CÁO (CHỈ ADMIN QUẢN TRỊ VIÊN MỚI THẤY)</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1 text-[11px]">
+          <div>📍 Địa chỉ IP gửi: <strong id="modalAuditIp" class="font-mono text-slate-800">--</strong></div>
+          <div class="truncate">💻 Trình duyệt/Thiết bị: <span id="modalAuditUserAgent" class="font-mono text-slate-700" title="">--</span></div>
+        </div>
+      </div>
+
+      <form onsubmit="handleSaveRespond(event)" class="space-y-4 pt-2">
+        <input type="hidden" id="modalFeedbackId">
+        
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Cập nhật Trạng thái xử lý <span class="text-red-500">*</span></label>
+          <select id="modalStatus" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl bg-white">
+            <option value="pending">⏳ Mới tiếp nhận (Chờ xử lý)</option>
+            <option value="processing">⚙️ Đang xử lý</option>
+            <option value="resolved">✅ Đã giải quyết / Đã xử lý xong</option>
+            <option value="rejected">❌ Từ chối / Không thuộc phạm vi</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Ý kiến chỉ đạo & Nội dung phản hồi nhân viên</label>
+          <textarea id="modalResponseText" rows="4" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500" placeholder="Nhập câu trả lời hoặc hướng chỉ đạo giải quyết của Ban Giám Đốc..."></textarea>
+        </div>
+
+        <div class="flex justify-end space-x-3 pt-2">
+          <button type="button" onclick="closeRespondModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs">Hủy bỏ</button>
+          <button type="submit" class="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl text-xs shadow">LƯU PHẢN HỒI & CẬP NHẬT</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: MULTI-CHANNEL NOTIFICATION CONFIGURATION -->
+  <div id="modalNotificationSettings" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-lg text-slate-800 flex items-center space-x-2 text-sky-700">
+          <i class="fa-solid fa-bell text-amber-500"></i>
+          <span>Cấu Hình Kênh Cảnh Báo Lãnh Đạo (Telegram, Email, Zalo)</span>
+        </h3>
+        <button onclick="closeNotificationModal()" class="text-slate-400 hover:text-slate-600 p-1">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+
+      <form onsubmit="handleSaveNotificationSettings(event)" class="space-y-6">
+
+        <!-- 1. TELEGRAM BOT SECTION -->
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+            <div class="flex items-center space-x-2 text-indigo-700 font-bold text-sm">
+              <i class="fa-brands fa-telegram text-lg"></i>
+              <span>1. Cảnh Báo Telegram Bot</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="settingTelegramEnabled" class="sr-only peer" checked>
+              <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+            </label>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Telegram Bot Token</label>
+              <input type="text" id="settingTelegramToken" class="w-full px-3 py-2 border border-slate-300 rounded-xl font-mono text-xs" placeholder="7123456789:AAE-xxxx...">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Telegram Chat ID (Nhóm BGĐ)</label>
+              <input type="text" id="settingTelegramChatId" class="w-full px-3 py-2 border border-slate-300 rounded-xl font-mono text-xs" placeholder="-1001234567890">
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. EMAIL / GMAIL SMTP SECTION -->
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+            <div class="flex items-center space-x-2 text-red-600 font-bold text-sm">
+              <i class="fa-solid fa-envelope text-lg"></i>
+              <span>2. Gửi Email / Gmail Thông Báo (SMTP)</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="settingEmailEnabled" class="sr-only peer">
+              <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-600"></div>
+            </label>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Email gửi (Gmail / SMTP Server)</label>
+              <input type="email" id="settingEmailUser" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs" placeholder="thongbao@benhvienanphu.vn">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Mật khẩu gửi (App Password Gmail)</label>
+              <input type="password" id="settingEmailPass" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs" placeholder="••••••••••••••••">
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Email Lãnh đạo nhận thông báo</label>
+              <input type="email" id="settingEmailReceiver" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs" placeholder="banggiamdoc@benhvienanphu.vn">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">SMTP Host</label>
+                <input type="text" id="settingEmailHost" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs" placeholder="smtp.gmail.com">
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">SMTP Port</label>
+                <input type="text" id="settingEmailPort" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs" placeholder="587">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. ZALO OA / WEBHOOK SECTION -->
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+            <div class="flex items-center space-x-2 text-blue-600 font-bold text-sm">
+              <i class="fa-solid fa-comment-dots text-lg"></i>
+              <span>3. Gửi Thông Báo Qua Zalo OA / Webhook</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="settingZaloEnabled" class="sr-only peer">
+              <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          <div class="space-y-2 text-xs">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Zalo Webhook URL / Endpoint API</label>
+              <input type="url" id="settingZaloWebhook" class="w-full px-3 py-2 border border-slate-300 rounded-xl font-mono text-xs" placeholder="https://api.zalo.me/v2.0/oa/message hoặc webhook URL">
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end space-x-3 pt-2">
+          <button type="button" onclick="closeNotificationModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs">Hủy bỏ</button>
+          <button type="submit" class="px-6 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl text-xs shadow">LƯU CẤU HÌNH TẤT CẢ CÁC KÊNH</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-slate-800 text-slate-400 text-xs py-6 border-t border-slate-700 mt-12">
+    <div class="max-w-7xl mx-auto px-4 text-center space-y-2">
+      <p class="font-semibold text-slate-300">© 2026 BỆNH VIỆN AN PHÚ - HỆ THỐNG Ý KIẾN & BÁO CÁO NỘI BỘ</p>
+      <p class="text-slate-500">Tích hợp Cảnh báo Telegram Bot Real-time & Xuất Báo Cáo Giao Ban chuẩn Excel</p>
+    </div>
+  </footer>
+
+  <!-- SCRIPT LOGIC -->
+  <script src="/app.js"></script>
+</body>
+</html>
