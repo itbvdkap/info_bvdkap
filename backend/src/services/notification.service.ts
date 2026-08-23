@@ -1,4 +1,4 @@
-import { getSql, querySql } from '../database/db';
+import { isSupabaseEnabled, supabase, querySqlite } from '../../../api/_db';
 import http from 'https';
 import nodemailer from 'nodemailer';
 
@@ -14,10 +14,26 @@ export interface FeedbackNotificationData {
   sender_phone?: string;
 }
 
-export async function dispatchMultiChannelNotifications(data: FeedbackNotificationData) {
-  const settingsRows = await querySql<{ key: string; value: string }>('SELECT key, value FROM system_settings');
+async function getSystemSettings(): Promise<Record<string, string>> {
   const settings: Record<string, string> = {};
-  settingsRows.forEach(r => { settings[r.key] = r.value || ''; });
+  try {
+    if (isSupabaseEnabled && supabase) {
+      const { data, error } = await supabase.from('system_settings').select('key, value');
+      if (!error && data) {
+        data.forEach((r: any) => { settings[r.key] = r.value || ''; });
+        return settings;
+      }
+    }
+    const rows = await querySqlite<{ key: string; value: string }>('SELECT key, value FROM system_settings');
+    rows.forEach((r: { key: string; value: string }) => { settings[r.key] = r.value || ''; });
+  } catch (err) {
+    console.error('Lỗi nạp settings thông báo:', err);
+  }
+  return settings;
+}
+
+export async function dispatchMultiChannelNotifications(data: FeedbackNotificationData) {
+  const settings = await getSystemSettings();
 
   // Dispatch all enabled channels concurrently
   const promises = [];
