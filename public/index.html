@@ -149,10 +149,45 @@
             <textarea id="feedbackContent" required rows="5" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none" placeholder="Mô tả cụ thể sự việc, thời gian, nguyên nhân hoặc đề xuất hướng giải quyết với Lãnh đạo..."></textarea>
           </div>
 
-          <!-- ATTACHMENT -->
-          <div>
-            <label class="block text-sm font-semibold text-slate-700 mb-1">Hình ảnh / Tài liệu đính kèm (nếu có)</label>
-            <input type="file" id="feedbackAttachment" accept="image/*,.pdf,.doc,.docx,.xlsx" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100">
+          <!-- ATTACHMENT & CAMERA CAPTURE -->
+          <div class="space-y-2">
+            <label class="block text-sm font-semibold text-slate-700">Hình ảnh minh chứng / Tài liệu đính kèm (nếu có)</label>
+
+            <div class="flex flex-wrap gap-2 items-center">
+              <!-- File Input from Device -->
+              <label class="px-4 py-2.5 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 rounded-xl text-xs font-bold cursor-pointer transition flex items-center space-x-1.5 shadow-sm">
+                <i class="fa-solid fa-folder-open text-sm"></i>
+                <span>📁 Chọn tệp từ máy</span>
+                <input type="file" id="feedbackAttachment" accept="image/*,.pdf,.doc,.docx,.xlsx" class="hidden" onchange="handleFileSelected(event)">
+              </label>
+
+              <!-- Direct Mobile Camera Input (Smartphones) -->
+              <label class="px-4 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl text-xs font-bold cursor-pointer transition flex items-center space-x-1.5 shadow-sm md:hidden">
+                <i class="fa-solid fa-camera text-sm"></i>
+                <span>📷 Chụp ảnh bằng Camera</span>
+                <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handleFileSelected(event)">
+              </label>
+
+              <!-- Live Webcam Modal Launcher (Desktop & Mobile) -->
+              <button type="button" onclick="openCameraModal()" class="px-4 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-sm">
+                <i class="fa-solid fa-video text-sm"></i>
+                <span>📸 Mở Camera chụp ảnh trực tiếp</span>
+              </button>
+            </div>
+
+            <!-- PREVIEW THUMBNAIL CONTAINER -->
+            <div id="attachmentPreviewBox" class="hidden flex items-center space-x-3 bg-slate-50 p-2.5 rounded-xl border border-slate-200 mt-2">
+              <div id="attachmentPreviewImg" class="w-12 h-12 rounded-lg bg-cover bg-center border border-slate-300 bg-sky-100 flex items-center justify-center text-sky-700">
+                <i id="attachmentDefaultIcon" class="fa-solid fa-file text-lg"></i>
+              </div>
+              <div class="flex-1 truncate">
+                <span id="attachmentFileName" class="text-xs font-bold text-slate-700 block truncate">--</span>
+                <span id="attachmentFileSize" class="text-[11px] text-slate-400 block">--</span>
+              </div>
+              <button type="button" onclick="removeSelectedAttachment()" class="text-red-500 hover:text-red-700 p-2 text-sm" title="Xóa tệp/ảnh">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
           </div>
 
           <!-- SUBMIT BUTTON -->
@@ -648,6 +683,32 @@
           <button type="submit" class="px-6 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl text-xs shadow">LƯU CẤU HÌNH TẤT CẢ CÁC KÊNH</button>
         </div>
       </form>
+    </div>
+  <!-- MODAL: LIVE CAMERA CAPTURE -->
+  <div id="modalCamera" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-5 shadow-2xl space-y-4 text-center">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-base text-slate-800 flex items-center space-x-2">
+          <i class="fa-solid fa-camera text-sky-600"></i>
+          <span>Chụp Ảnh Trực Tiếp Từ Camera</span>
+        </h3>
+        <button onclick="closeCameraModal()" class="text-slate-400 hover:text-slate-600 p-1">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+
+      <div class="relative bg-black rounded-2xl overflow-hidden aspect-video flex items-center justify-center border border-slate-800 shadow-inner">
+        <video id="cameraVideo" autoplay playsinline class="w-full h-full object-cover"></video>
+        <canvas id="cameraCanvas" class="hidden"></canvas>
+      </div>
+
+      <div class="flex justify-center space-x-3 pt-1">
+        <button type="button" onclick="closeCameraModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs">Hủy bỏ</button>
+        <button type="button" onclick="capturePhotoFromCamera()" class="px-6 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl text-xs shadow flex items-center space-x-2">
+          <i class="fa-solid fa-circle-dot text-red-400 animate-pulse text-sm"></i>
+          <span>CHỤP ẢNH NÀY</span>
+        </button>
+      </div>
     </div>
   </div>
 

@@ -108,6 +108,106 @@ function toggleAnonFields() {
   }
 }
 
+// Attachment & Camera State Management
+let selectedAttachmentFile = null;
+let cameraStream = null;
+
+function handleFileSelected(e) {
+  const files = e.target.files;
+  if (!files || files.length === 0) return;
+  const file = files[0];
+  selectedAttachmentFile = file;
+  renderAttachmentPreview(file);
+}
+
+function renderAttachmentPreview(file) {
+  const previewBox = document.getElementById('attachmentPreviewBox');
+  const fileNameSpan = document.getElementById('attachmentFileName');
+  const fileSizeSpan = document.getElementById('attachmentFileSize');
+  const previewImgDiv = document.getElementById('attachmentPreviewImg');
+  const defaultIcon = document.getElementById('attachmentDefaultIcon');
+
+  if (!previewBox) return;
+
+  fileNameSpan.innerText = file.name || 'Ảnh chụp từ Camera';
+  const sizeKb = (file.size / 1024).toFixed(1);
+  fileSizeSpan.innerText = `${sizeKb > 1024 ? (Number(sizeKb) / 1024).toFixed(2) + ' MB' : sizeKb + ' KB'}`;
+
+  if (file.type && file.type.startsWith('image/')) {
+    const url = URL.createObjectURL(file);
+    previewImgDiv.style.backgroundImage = `url('${url}')`;
+    if (defaultIcon) defaultIcon.classList.add('hidden');
+  } else {
+    previewImgDiv.style.backgroundImage = 'none';
+    if (defaultIcon) defaultIcon.classList.remove('hidden');
+  }
+
+  previewBox.classList.remove('hidden');
+}
+
+function removeSelectedAttachment() {
+  selectedAttachmentFile = null;
+  const previewBox = document.getElementById('attachmentPreviewBox');
+  if (previewBox) previewBox.classList.add('hidden');
+
+  const fileInput = document.getElementById('feedbackAttachment');
+  if (fileInput) fileInput.value = '';
+}
+
+// Live Camera Modal Control (HTML5 WebRTC)
+async function openCameraModal() {
+  const modal = document.getElementById('modalCamera');
+  const video = document.getElementById('cameraVideo');
+
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false
+    });
+    video.srcObject = cameraStream;
+    modal.classList.remove('hidden');
+  } catch (err) {
+    alert('⚠️ Không thể mở Camera trên thiết bị này: ' + (err.message || 'Chưa cấp quyền truy cập Camera.'));
+  }
+}
+
+function closeCameraModal() {
+  const modal = document.getElementById('modalCamera');
+  const video = document.getElementById('cameraVideo');
+
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(track => track.stop());
+    cameraStream = null;
+  }
+  if (video) video.srcObject = null;
+  modal.classList.add('hidden');
+}
+
+function capturePhotoFromCamera() {
+  const video = document.getElementById('cameraVideo');
+  const canvas = document.getElementById('cameraCanvas');
+
+  if (!video || !canvas) return;
+
+  canvas.width = video.videoWidth || 1280;
+  canvas.height = video.videoHeight || 720;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  canvas.toBlob((blob) => {
+    if (!blob) {
+      alert('❌ Lỗi chụp ảnh!');
+      return;
+    }
+    const timestamp = new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 14);
+    const photoFile = new File([blob], `CAMERA_${timestamp}.jpg`, { type: 'image/jpeg' });
+
+    selectedAttachmentFile = photoFile;
+    renderAttachmentPreview(photoFile);
+    closeCameraModal();
+  }, 'image/jpeg', 0.85);
+}
+
 // Submit Employee Feedback Form
 async function handleFormSubmit(e) {
   e.preventDefault();
@@ -126,24 +226,25 @@ async function handleFormSubmit(e) {
 
     let attachmentUrl = null;
 
-    // 1. If file attached, upload to Supabase Storage CDN via /api/upload
-    if (fileInput.files.length > 0) {
-      const file = fileInput.files[0];
+    const fileToUpload = selectedAttachmentFile || (fileInput.files.length > 0 ? fileInput.files[0] : null);
+
+    // 1. If file attached or photo captured, upload to Supabase Storage CDN via /api/upload
+    if (fileToUpload) {
       btnSubmit.innerHTML = '<i class="fa-solid fa-cloud-arrow-up fa-spin"></i> <span>ĐANG TẢI ẢNH/FILE LÊN SUPABASE STORAGE...</span>';
 
       const base64 = await new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result);
         reader.onerror = reject;
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(fileToUpload);
       });
 
       const uploadRes = await fetch('/api/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          filename: file.name,
-          mimetype: file.type,
+          filename: fileToUpload.name,
+          mimetype: fileToUpload.type,
           base64
         })
       });
@@ -203,6 +304,7 @@ async function handleFormSubmit(e) {
       document.getElementById('displayTrackingCode').innerText = data.tracking_code;
       document.getElementById('modalSuccess').classList.remove('hidden');
       document.getElementById('feedbackForm').reset();
+      removeSelectedAttachment();
       toggleAnonFields();
     } else {
       alert('❌ Error: ' + (data.message || 'Không thể gửi báo cáo.'));
