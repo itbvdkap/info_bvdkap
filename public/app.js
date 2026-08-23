@@ -124,27 +124,63 @@ async function handleFormSubmit(e) {
     const content = document.getElementById('feedbackContent').value;
     const fileInput = document.getElementById('feedbackAttachment');
 
-    const formData = new FormData();
-    formData.append('is_anonymous', isAnon);
-    formData.append('category_id', categoryId);
-    formData.append('department_id', departmentId);
-    formData.append('priority', priority);
-    formData.append('title', title);
-    formData.append('content', content);
+    let attachmentUrl = null;
 
-    if (!isAnon) {
-      formData.append('sender_name', document.getElementById('senderName').value);
-      formData.append('sender_phone', document.getElementById('senderPhone').value);
-      formData.append('sender_email', document.getElementById('senderEmail').value);
+    // 1. If file attached, upload to Supabase Storage CDN via /api/upload
+    if (fileInput.files.length > 0) {
+      const file = fileInput.files[0];
+      btnSubmit.innerHTML = '<i class="fa-solid fa-cloud-arrow-up fa-spin"></i> <span>ĐANG TẢI ẢNH/FILE LÊN SUPABASE STORAGE...</span>';
+
+      const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const uploadRes = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filename: file.name,
+          mimetype: file.type,
+          base64
+        })
+      });
+
+      const uploadData = await uploadRes.json();
+      if (uploadData.success && uploadData.url) {
+        attachmentUrl = uploadData.url;
+      } else {
+        alert('❌ Lỗi tải tệp đính kèm: ' + (uploadData.message || 'Không thể tải tệp lên Cloud Storage.'));
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = '<i class="fa-solid fa-paper-plane"></i> <span>GỬI BÁO CÁO CHO LÃNH ĐẠO</span>';
+        return;
+      }
     }
 
-    if (fileInput.files.length > 0) {
-      formData.append('attachment', fileInput.files[0]);
+    btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>ĐANG GỬI BÁO CÁO...</span>';
+
+    const payload = {
+      is_anonymous: isAnon,
+      category_id: categoryId,
+      department_id: departmentId,
+      priority,
+      title,
+      content,
+      attachment_url: attachmentUrl
+    };
+
+    if (!isAnon) {
+      payload.sender_name = document.getElementById('senderName').value;
+      payload.sender_phone = document.getElementById('senderPhone').value;
+      payload.sender_email = document.getElementById('senderEmail').value;
     }
 
     const res = await fetch('/api/feedbacks', {
       method: 'POST',
-      body: formData
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
     });
 
     const data = await res.json();
