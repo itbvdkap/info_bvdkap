@@ -1307,7 +1307,7 @@ function populateUserDeptDropdown() {
 async function loadUserList() {
   if (!adminToken) return;
   try {
-    const res = await fetch('/api/users', {
+    const res = await fetch('/api/accounts', {
       headers: { 'Authorization': `Bearer ${adminToken}` }
     });
     const data = await res.json();
@@ -1398,7 +1398,7 @@ async function handleSaveUser(e) {
   }
 
   try {
-    const res = await fetch('/api/users', {
+    const res = await fetch('/api/accounts', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -55,12 +55,12 @@ async function runLiveTest() {
 
   const token = loginRes.token;
 
-  const usersRes: any = await testLiveEndpoint('/api/users', token);
-  console.log('HTTP Status /api/users:', usersRes.status);
+  const usersRes: any = await testLiveEndpoint('/api/accounts', token);
+  console.log('HTTP Status /api/accounts:', usersRes.status);
   console.log('Nội dung danh sách tài khoản:', JSON.stringify(usersRes.data || usersRes.raw, null, 2));
 
   if (usersRes.status === 200 && usersRes.data?.success) {
-    console.log('\n🎉 THÀNH CÔNG RỰC RỠ: VERCEL ĐÃ DEPLOY TRỰC TIẾP API USER-MANAGEMENT & TÍNH NĂNG RBAC 4 CẤP LIVE 100%!');
+    console.log('\n🎉 THÀNH CÔNG RỰC RỠ: VERCEL ĐÃ DEPLOY TRỰC TIẾP API ACCOUNTS & TÍNH NĂNG RBAC 4 CẤP LIVE 100%!');
   }
 }
 
