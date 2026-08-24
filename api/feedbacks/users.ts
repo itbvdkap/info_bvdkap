@@ -1,6 +1,6 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { isSupabaseEnabled, supabase, querySqlite, runSqlite } from './_db';
-import { applySecurityHeaders, checkRateLimit } from './_security';
+import { isSupabaseEnabled, supabase, querySqlite, runSqlite } from '../_db';
+import { applySecurityHeaders, checkRateLimit } from '../_security';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
@@ -20,7 +20,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const currentUser: any = jwt.verify(token, JWT_SECRET);
 
-    // 1. GET /api/accounts (List all users - Admin only)
+    // 1. GET /api/feedbacks/users (List all users - Admin only)
     if (req.method === 'GET') {
       if (currentUser?.role !== 'admin') {
         return res.status(403).json({ success: false, message: 'Chỉ Admin mới có quyền truy cập danh sách tài khoản!' });
@@ -51,7 +51,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ success: true, data: users });
     }
 
-    // 2. POST /api/accounts (Create or Update User - Admin only)
+    // 2. POST /api/feedbacks/users (Create or Update User - Admin only)
     if (req.method === 'POST') {
       if (currentUser?.role !== 'admin') {
         return res.status(403).json({ success: false, message: 'Chỉ Admin mới có quyền quản lý tài khoản!' });
