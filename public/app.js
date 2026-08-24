@@ -515,10 +515,19 @@ function renderFeedbacksTable(items) {
     if (item.priority === 'urgent') priorityBadge = '<span class="px-2 py-0.5 bg-red-100 text-red-800 font-bold rounded text-[11px]">🚨 Khẩn cấp</span>';
     else if (item.priority === 'high') priorityBadge = '<span class="px-2 py-0.5 bg-amber-100 text-amber-800 font-bold rounded text-[11px]">⚠️ Quan trọng</span>';
 
-    let statusBadge = '<span class="px-2.5 py-1 bg-amber-100 text-amber-800 font-semibold rounded-full text-[11px]">Mới tiếp nhận</span>';
-    if (item.status === 'processing') statusBadge = '<span class="px-2.5 py-1 bg-blue-100 text-blue-800 font-semibold rounded-full text-[11px]">Đang xử lý</span>';
-    else if (item.status === 'resolved') statusBadge = '<span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 font-semibold rounded-full text-[11px]">Đã giải quyết</span>';
-    else if (item.status === 'rejected') statusBadge = '<span class="px-2.5 py-1 bg-slate-100 text-slate-700 font-semibold rounded-full text-[11px]">Từ chối</span>';
+    let statusClass = 'bg-amber-100 text-amber-900 border-amber-300';
+    if (item.status === 'processing') statusClass = 'bg-blue-100 text-blue-900 border-blue-300';
+    else if (item.status === 'resolved') statusClass = 'bg-emerald-100 text-emerald-900 border-emerald-300';
+    else if (item.status === 'rejected') statusClass = 'bg-slate-100 text-slate-700 border-slate-300';
+
+    const statusDropdownHtml = `
+      <select onchange="quickUpdateStatus(${item.id}, this.value)" class="px-2 py-1 text-[11px] font-bold rounded-full border shadow-sm cursor-pointer outline-none transition-all ${statusClass}">
+        <option value="pending" ${item.status === 'pending' ? 'selected' : ''}>⏳ Mới tiếp nhận</option>
+        <option value="processing" ${item.status === 'processing' ? 'selected' : ''}>⚙️ Đang xử lý</option>
+        <option value="resolved" ${item.status === 'resolved' ? 'selected' : ''}>✅ Đã giải quyết</option>
+        <option value="rejected" ${item.status === 'rejected' ? 'selected' : ''}>❌ Từ chối</option>
+      </select>
+    `;
 
     const senderText = item.is_anonymous ? '<span class="text-slate-400 font-medium">🔒 Ẩn danh</span>' : `<strong>${escapeHtml(item.sender_name || 'Nhân viên')}</strong> ${item.sender_phone ? `<br><span class="text-slate-400 text-[10px]">${item.sender_phone}</span>` : ''}`;
 
@@ -539,23 +548,24 @@ function renderFeedbacksTable(items) {
           <div class="font-bold text-slate-800 line-clamp-1">${escapeHtml(item.title)}</div>
           <div class="text-slate-500 text-[11px] line-clamp-2 mt-0.5">${escapeHtml(item.content)}</div>
         </td>
-        <td class="p-3.5">${statusBadge}</td>
+        <td class="p-3.5">${statusDropdownHtml}</td>
         <td class="p-3.5 text-center">
-          <button onclick="openRespondModal(${item.id})" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-lg text-xs shadow-sm transition">
-            <i class="fa-solid fa-pen-to-square"></i> Xử lý
+          <button onclick="openRespondModal(${item.id})" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-lg text-xs shadow-sm transition flex items-center space-x-1 mx-auto">
+            <i class="fa-solid fa-pen-to-square"></i>
+            <span>Phản hồi</span>
           </button>
         </td>
       </tr>
     `;
 
-    // Mobile Responsive Card Item (Compact & Touch Focused)
+    // Mobile Responsive Card Item (Compact & 1-Tap Touch Focused)
     mobileHtml += `
       <div class="p-3.5 space-y-2 hover:bg-slate-50 transition border-b border-slate-100 last:border-none">
         <div class="flex items-center justify-between">
           <span class="font-extrabold text-sky-700 text-[11px] font-mono">${item.tracking_code}</span>
           <div class="flex items-center space-x-1">
             ${priorityBadge}
-            ${statusBadge}
+            ${statusDropdownHtml}
           </div>
         </div>
         <div>
@@ -569,7 +579,7 @@ function renderFeedbacksTable(items) {
           </div>
           <button onclick="openRespondModal(${item.id})" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl text-xs shadow flex items-center space-x-1 shrink-0">
             <i class="fa-solid fa-pen-to-square"></i>
-            <span>Xử lý</span>
+            <span>Phản hồi</span>
           </button>
         </div>
       </div>
@@ -578,6 +588,35 @@ function renderFeedbacksTable(items) {
 
   if (tbody) tbody.innerHTML = tableHtml;
   if (mobileContainer) mobileContainer.innerHTML = mobileHtml;
+}
+
+// 1-Tap Quick Status Switcher Handler
+async function quickUpdateStatus(id, newStatus) {
+  if (!adminToken) {
+    alert('Vui lòng đăng nhập lại tài khoản Admin!');
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/feedbacks/respond', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${adminToken}`
+      },
+      body: JSON.stringify({ id, status: newStatus })
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      loadAdminFeedbacks();
+      loadStatsAndCharts();
+    } else {
+      alert('❌ Lỗi cập nhật trạng thái: ' + data.message);
+    }
+  } catch (err) {
+    alert('❌ Lỗi kết nối khi cập nhật trạng thái!');
+  }
 }
 
 function toggleMobileFilters() {
