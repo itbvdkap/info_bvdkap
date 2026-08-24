@@ -350,153 +350,168 @@
       <!-- ADMIN DASHBOARD (AFTER LOGIN) -->
       <div id="adminDashboard" class="hidden space-y-6">
 
-        <!-- DASHBOARD HEADER BAR -->
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-4">
+        <!-- DASHBOARD HEADER BAR (COMPACT MOBILE ACTION BAR) -->
+        <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3">
           <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-sky-600 text-white rounded-xl flex items-center justify-center font-bold">
+            <div class="w-9 h-9 bg-sky-600 text-white rounded-xl flex items-center justify-center font-bold text-sm shrink-0">
               <i class="fa-solid fa-user-check"></i>
             </div>
-            <div>
-              <h3 id="adminUserGreeting" class="font-bold text-slate-800 text-sm">Ban Giám Đốc Bệnh Viện</h3>
-              <p class="text-xs text-slate-500">Cổng tiếp nhận & xử lý phản ánh nội bộ</p>
+            <div class="min-w-0">
+              <h3 id="adminUserGreeting" class="font-bold text-slate-800 text-sm truncate">Ban Giám Đốc Bệnh Viện</h3>
+              <p class="text-[11px] text-slate-500 truncate">Cổng tiếp nhận & xử lý phản ánh nội bộ</p>
             </div>
           </div>
 
-          <div class="flex items-center space-x-2">
-            <button onclick="openDepartmentModal()" class="px-3.5 py-2 bg-sky-50 hover:bg-sky-100 text-sky-700 text-xs font-semibold rounded-xl border border-sky-200 transition flex items-center space-x-1.5">
-              <i class="fa-solid fa-hospital-user text-base text-sky-600"></i>
-              <span>DM Khoa/Phòng</span>
+          <!-- Quick Actions Horizontal Scroll / Touch Pills -->
+          <div class="flex items-center space-x-2 overflow-x-auto pb-1 md:pb-0 no-scrollbar text-xs">
+            <button onclick="openDepartmentModal()" class="px-3 py-2 bg-sky-50 hover:bg-sky-100 text-sky-700 font-semibold rounded-xl border border-sky-200 transition flex items-center space-x-1.5 whitespace-nowrap shrink-0">
+              <i class="fa-solid fa-hospital-user text-sky-600"></i>
+              <span>Khoa/Phòng</span>
             </button>
-            <button onclick="openCategoryModal()" class="px-3.5 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-semibold rounded-xl border border-purple-200 transition flex items-center space-x-1.5">
-              <i class="fa-solid fa-list-check text-base text-purple-600"></i>
-              <span>DM Phân Loại</span>
+            <button onclick="openCategoryModal()" class="px-3 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 font-semibold rounded-xl border border-purple-200 transition flex items-center space-x-1.5 whitespace-nowrap shrink-0">
+              <i class="fa-solid fa-list-check text-purple-600"></i>
+              <span>Phân Loại</span>
             </button>
-            <button onclick="openNotificationModal()" class="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-xl border border-indigo-200 transition flex items-center space-x-1.5">
-              <i class="fa-solid fa-bell text-base text-amber-500"></i>
+            <button onclick="openExportModal()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow transition flex items-center space-x-1.5 whitespace-nowrap shrink-0">
+              <i class="fa-solid fa-file-excel"></i>
+              <span>Xuất Excel</span>
+            </button>
+            <button onclick="openNotificationModal()" class="px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold rounded-xl border border-indigo-200 transition flex items-center space-x-1.5 whitespace-nowrap shrink-0">
+              <i class="fa-solid fa-bell text-amber-500"></i>
               <span>Thông Báo</span>
             </button>
-            <button onclick="openExportModal()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl shadow transition flex items-center space-x-1.5">
-              <i class="fa-solid fa-file-excel"></i>
-              <span>Xuất Báo Cáo Excel</span>
-            </button>
-            <button onclick="handleLogout()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
+            <button onclick="handleLogout()" title="Đăng xuất" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition whitespace-nowrap shrink-0">
               <i class="fa-solid fa-right-from-bracket"></i>
             </button>
           </div>
         </div>
 
-        <!-- KPI SUMMARY CARDS -->
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-3">
-            <div class="w-10 h-10 bg-sky-100 text-sky-700 rounded-xl flex items-center justify-center text-lg">
+        <!-- KPI SUMMARY CHIPS (COMPACT MOBILE STATS) -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
+          <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-2.5">
+            <div class="w-8 h-8 bg-sky-100 text-sky-700 rounded-lg flex items-center justify-center text-sm shrink-0">
               <i class="fa-solid fa-inbox"></i>
             </div>
-            <div>
-              <span class="text-xs text-slate-500 font-medium">Tổng báo cáo</span>
-              <h4 id="kpiTotal" class="text-xl font-extrabold text-slate-800">0</h4>
+            <div class="min-w-0">
+              <span class="text-[10px] text-slate-500 font-medium block truncate">Tổng cộng</span>
+              <h4 id="kpiTotal" class="text-base font-extrabold text-slate-800 leading-tight">0</h4>
             </div>
           </div>
 
-          <div class="bg-white p-4 rounded-2xl border border-amber-200 shadow-sm flex items-center space-x-3">
-            <div class="w-10 h-10 bg-amber-100 text-amber-700 rounded-xl flex items-center justify-center text-lg">
+          <div class="bg-white p-3 rounded-xl border border-amber-200 shadow-sm flex items-center space-x-2.5">
+            <div class="w-8 h-8 bg-amber-100 text-amber-700 rounded-lg flex items-center justify-center text-sm shrink-0">
               <i class="fa-solid fa-clock-rotate-left"></i>
             </div>
-            <div>
-              <span class="text-xs text-amber-700 font-medium">Mới tiếp nhận</span>
-              <h4 id="kpiPending" class="text-xl font-extrabold text-amber-600">0</h4>
+            <div class="min-w-0">
+              <span class="text-[10px] text-amber-700 font-medium block truncate">Mới tiếp nhận</span>
+              <h4 id="kpiPending" class="text-base font-extrabold text-amber-600 leading-tight">0</h4>
             </div>
           </div>
 
-          <div class="bg-white p-4 rounded-2xl border border-blue-200 shadow-sm flex items-center space-x-3">
-            <div class="w-10 h-10 bg-blue-100 text-blue-700 rounded-xl flex items-center justify-center text-lg">
+          <div class="bg-white p-3 rounded-xl border border-blue-200 shadow-sm flex items-center space-x-2.5">
+            <div class="w-8 h-8 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center text-sm shrink-0">
               <i class="fa-solid fa-spinner"></i>
             </div>
-            <div>
-              <span class="text-xs text-blue-700 font-medium">Đang xử lý</span>
-              <h4 id="kpiProcessing" class="text-xl font-extrabold text-blue-600">0</h4>
+            <div class="min-w-0">
+              <span class="text-[10px] text-blue-700 font-medium block truncate">Đang xử lý</span>
+              <h4 id="kpiProcessing" class="text-base font-extrabold text-blue-600 leading-tight">0</h4>
             </div>
           </div>
 
-          <div class="bg-white p-4 rounded-2xl border border-emerald-200 shadow-sm flex items-center space-x-3">
-            <div class="w-10 h-10 bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center text-lg">
+          <div class="bg-white p-3 rounded-xl border border-emerald-200 shadow-sm flex items-center space-x-2.5">
+            <div class="w-8 h-8 bg-emerald-100 text-emerald-700 rounded-lg flex items-center justify-center text-sm shrink-0">
               <i class="fa-solid fa-circle-check"></i>
             </div>
-            <div>
-              <span class="text-xs text-emerald-700 font-medium">Đã giải quyết</span>
-              <h4 id="kpiResolved" class="text-xl font-extrabold text-emerald-600">0</h4>
+            <div class="min-w-0">
+              <span class="text-[10px] text-emerald-700 font-medium block truncate">Đã giải quyết</span>
+              <h4 id="kpiResolved" class="text-base font-extrabold text-emerald-600 leading-tight">0</h4>
             </div>
           </div>
 
-          <div class="bg-white p-4 rounded-2xl border border-red-200 shadow-sm flex items-center space-x-3 col-span-2 md:col-span-1">
-            <div class="w-10 h-10 bg-red-100 text-red-700 rounded-xl flex items-center justify-center text-lg">
+          <div class="bg-white p-3 rounded-xl border border-red-200 shadow-sm flex items-center space-x-2.5 col-span-2 sm:col-span-1">
+            <div class="w-8 h-8 bg-red-100 text-red-700 rounded-lg flex items-center justify-center text-sm shrink-0">
               <i class="fa-solid fa-triangle-exclamation"></i>
             </div>
-            <div>
-              <span class="text-xs text-red-700 font-medium">Sự cố khẩn cấp</span>
-              <h4 id="kpiUrgent" class="text-xl font-extrabold text-red-600">0</h4>
+            <div class="min-w-0">
+              <span class="text-[10px] text-red-700 font-medium block truncate">Sự cố khẩn cấp</span>
+              <h4 id="kpiUrgent" class="text-base font-extrabold text-red-600 leading-tight">0</h4>
             </div>
           </div>
         </div>
 
-        <!-- CHARTS SECTION -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-            <h4 class="font-bold text-sm text-slate-800 mb-4 flex items-center space-x-2">
+        <!-- CHARTS SECTION (COLLAPSIBLE / COMPACT ON MOBILE) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+            <h4 class="font-bold text-xs text-slate-800 mb-2 flex items-center space-x-2">
               <i class="fa-solid fa-chart-pie text-sky-600"></i>
               <span>Phân Bổ Báo Cáo Theo Chuyên Mục</span>
             </h4>
-            <div class="h-56 relative flex items-center justify-center">
+            <div class="h-44 relative flex items-center justify-center">
               <canvas id="chartCategory"></canvas>
             </div>
           </div>
 
-          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-            <h4 class="font-bold text-sm text-slate-800 mb-4 flex items-center space-x-2">
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+            <h4 class="font-bold text-xs text-slate-800 mb-2 flex items-center space-x-2">
               <i class="fa-solid fa-chart-column text-sky-600"></i>
               <span>Phản Ánh Theo Khoa / Phòng Ban</span>
             </h4>
-            <div class="h-56 relative flex items-center justify-center">
+            <div class="h-44 relative flex items-center justify-center">
               <canvas id="chartDepartment"></canvas>
             </div>
           </div>
         </div>
 
-        <!-- SEARCH & FILTER TOOLBAR -->
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-          <div class="grid grid-cols-1 md:grid-cols-7 gap-2.5">
+        <!-- SEARCH & COLLAPSIBLE FILTER TOOLBAR -->
+        <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+          <!-- Main Search Row + Toggle Filter Button -->
+          <div class="flex items-center space-x-2">
+            <div class="relative flex-grow">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
+              <input type="text" id="filterKeyword" oninput="loadAdminFeedbacks()" class="w-full pl-8 pr-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500" placeholder="Tìm theo tiêu đề, nội dung, mã...">
+            </div>
+            <button type="button" onclick="toggleMobileFilters()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs flex items-center space-x-1.5 shrink-0 border border-slate-200">
+              <i class="fa-solid fa-filter text-sky-600"></i>
+              <span class="hidden sm:inline">Bộ Lọc</span>
+              <i class="fa-solid fa-chevron-down text-[10px] ml-0.5"></i>
+            </button>
+          </div>
+
+          <!-- Collapsible Extended Filter Tray -->
+          <div id="extendedFilterTray" class="hidden grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-2 pt-2 border-t border-slate-100">
             <div class="flex items-center space-x-1">
-              <span class="text-[11px] font-semibold text-slate-500 whitespace-nowrap">Từ:</span>
-              <input type="date" id="filterFromDate" onchange="loadAdminFeedbacks()" class="w-full px-2 py-2 text-xs border border-slate-300 rounded-xl bg-white">
+              <span class="text-[10px] font-semibold text-slate-500 whitespace-nowrap">Từ:</span>
+              <input type="date" id="filterFromDate" onchange="loadAdminFeedbacks()" class="w-full px-2 py-1.5 text-xs border border-slate-300 rounded-xl bg-white">
             </div>
             <div class="flex items-center space-x-1">
-              <span class="text-[11px] font-semibold text-slate-500 whitespace-nowrap">Đến:</span>
-              <input type="date" id="filterToDate" onchange="loadAdminFeedbacks()" class="w-full px-2 py-2 text-xs border border-slate-300 rounded-xl bg-white">
+              <span class="text-[10px] font-semibold text-slate-500 whitespace-nowrap">Đến:</span>
+              <input type="date" id="filterToDate" onchange="loadAdminFeedbacks()" class="w-full px-2 py-1.5 text-xs border border-slate-300 rounded-xl bg-white">
             </div>
-            <input type="text" id="filterKeyword" oninput="loadAdminFeedbacks()" class="px-3 py-2 text-xs border border-slate-300 rounded-xl" placeholder="Tìm kiếm từ khóa...">
-            
-            <select id="filterStatus" onchange="loadAdminFeedbacks()" class="px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white">
-              <option value="all">-- Tất cả trạng thái --</option>
+
+            <select id="filterStatus" onchange="loadAdminFeedbacks()" class="px-2.5 py-1.5 text-xs border border-slate-300 rounded-xl bg-white">
+              <option value="all">-- Trạng thái: Tất cả --</option>
               <option value="pending">⏳ Mới tiếp nhận</option>
               <option value="processing">⚙️ Đang xử lý</option>
               <option value="resolved">✅ Đã giải quyết</option>
               <option value="rejected">❌ Từ chối / Bỏ qua</option>
             </select>
 
-            <select id="filterDepartment" onchange="loadAdminFeedbacks()" class="px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white">
-              <option value="all">-- Tất cả Khoa/Phòng --</option>
+            <select id="filterDepartment" onchange="loadAdminFeedbacks()" class="px-2.5 py-1.5 text-xs border border-slate-300 rounded-xl bg-white">
+              <option value="all">-- Khoa/Phòng: Tất cả --</option>
             </select>
 
-            <select id="filterCategory" onchange="loadAdminFeedbacks()" class="px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white">
-              <option value="all">-- Tất cả Phân loại --</option>
+            <select id="filterCategory" onchange="loadAdminFeedbacks()" class="px-2.5 py-1.5 text-xs border border-slate-300 rounded-xl bg-white">
+              <option value="all">-- Phân loại: Tất cả --</option>
             </select>
 
-            <select id="filterPriority" onchange="loadAdminFeedbacks()" class="px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white">
-              <option value="all">-- Tất cả mức độ --</option>
+            <select id="filterPriority" onchange="loadAdminFeedbacks()" class="px-2.5 py-1.5 text-xs border border-slate-300 rounded-xl bg-white">
+              <option value="all">-- Mức độ: Tất cả --</option>
               <option value="urgent">🚨 Khẩn cấp</option>
               <option value="high">⚠️ Quan trọng</option>
               <option value="normal">📌 Bình thường</option>
             </select>
           </div>
+        </div>
 
         <!-- FEEDBACKS TABLE & MOBILE RESPONSIVE CARDS -->
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">

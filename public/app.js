@@ -548,26 +548,26 @@ function renderFeedbacksTable(items) {
       </tr>
     `;
 
-    // Mobile Responsive Card Item
+    // Mobile Responsive Card Item (Compact & Touch Focused)
     mobileHtml += `
-      <div class="p-4 space-y-2.5 hover:bg-slate-50 transition border-b border-slate-100 last:border-none">
+      <div class="p-3.5 space-y-2 hover:bg-slate-50 transition border-b border-slate-100 last:border-none">
         <div class="flex items-center justify-between">
-          <span class="font-extrabold text-sky-700 text-xs font-mono">${item.tracking_code}</span>
+          <span class="font-extrabold text-sky-700 text-[11px] font-mono">${item.tracking_code}</span>
           <div class="flex items-center space-x-1">
             ${priorityBadge}
             ${statusBadge}
           </div>
         </div>
         <div>
-          <h5 class="font-bold text-slate-800 text-sm leading-snug">${escapeHtml(item.title)}</h5>
-          <p class="text-slate-600 text-xs line-clamp-3 mt-1 leading-relaxed">${escapeHtml(item.content)}</p>
+          <h5 class="font-bold text-slate-800 text-xs leading-snug">${escapeHtml(item.title)}</h5>
+          <p class="text-slate-600 text-[11px] line-clamp-2 mt-0.5 leading-relaxed">${escapeHtml(item.content)}</p>
         </div>
-        <div class="flex items-center justify-between text-[11px] pt-2 border-t border-slate-100">
-          <div class="space-y-0.5">
-            <div class="font-semibold text-slate-700">🏥 ${escapeHtml(deptStr)}</div>
-            <div class="text-slate-400 text-[10px]">📁 ${escapeHtml(catStr)} • ${senderText}</div>
+        <div class="flex items-center justify-between text-[11px] pt-1.5 border-t border-slate-100">
+          <div class="min-w-0 pr-2">
+            <div class="font-semibold text-slate-700 truncate">🏥 ${escapeHtml(deptStr)}</div>
+            <div class="text-slate-400 text-[10px] truncate">📁 ${escapeHtml(catStr)} • ${senderText}</div>
           </div>
-          <button onclick="openRespondModal(${item.id})" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl text-xs shadow flex items-center space-x-1 shrink-0 ml-2">
+          <button onclick="openRespondModal(${item.id})" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl text-xs shadow flex items-center space-x-1 shrink-0">
             <i class="fa-solid fa-pen-to-square"></i>
             <span>Xử lý</span>
           </button>
@@ -578,6 +578,13 @@ function renderFeedbacksTable(items) {
 
   if (tbody) tbody.innerHTML = tableHtml;
   if (mobileContainer) mobileContainer.innerHTML = mobileHtml;
+}
+
+function toggleMobileFilters() {
+  const tray = document.getElementById('extendedFilterTray');
+  if (tray) {
+    tray.classList.toggle('hidden');
+  }
 }
 
 // Fetch Stats & Render Chart.js
