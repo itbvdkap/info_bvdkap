@@ -464,18 +464,21 @@ function handleLogout() {
 async function loadAdminFeedbacks() {
   if (!adminToken) return;
 
-  const keyword = document.getElementById('filterKeyword').value.trim();
-  const status = document.getElementById('filterStatus').value;
-  const department_id = document.getElementById('filterDepartment').value;
-  const category_id = document.getElementById('filterCategory').value;
-  const priority = document.getElementById('filterPriority').value;
+  const keyword = document.getElementById('filterKeyword')?.value?.trim() || '';
+  const status = document.getElementById('filterStatus')?.value || 'all';
+  const department_id = document.getElementById('filterDepartment')?.value || 'all';
+  const category_id = document.getElementById('filterCategory')?.value || 'all';
+  const priority = document.getElementById('filterPriority')?.value || 'all';
 
-  const queryParams = new URLSearchParams({
-    keyword, status, department_id, category_id, priority
-  });
+  const queryParams = new URLSearchParams();
+  if (keyword) queryParams.append('keyword', keyword);
+  if (status && status !== 'all') queryParams.append('status', status);
+  if (department_id && department_id !== 'all') queryParams.append('department_id', department_id);
+  if (category_id && category_id !== 'all') queryParams.append('category_id', category_id);
+  if (priority && priority !== 'all') queryParams.append('priority', priority);
 
   try {
-    const res = await fetch(`/api/feedbacks/admin?${queryParams}`, {
+    const res = await fetch(`/api/feedbacks/admin?${queryParams.toString()}`, {
       headers: { 'Authorization': `Bearer ${adminToken}` }
     });
     const data = await res.json();
