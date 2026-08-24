@@ -412,11 +412,28 @@ async function handleTrackSearch() {
 function checkAuthAndInit() {
   const loginForm = document.getElementById('adminLoginForm');
   const dashboard = document.getElementById('adminDashboard');
+  const btnUserMgmt = document.getElementById('btnUserManagement');
 
   if (adminToken) {
     loginForm.classList.add('hidden');
     dashboard.classList.remove('hidden');
-    document.getElementById('adminUserGreeting').innerText = adminUser?.full_name || 'Ban Giám Đốc Bệnh Viện';
+
+    let roleTitle = 'Ban Giám Đốc Bệnh Viện';
+    if (adminUser?.role === 'admin') roleTitle = `🛡️ ${adminUser?.full_name || 'Admin Quản Trị'}`;
+    else if (adminUser?.role === 'leader') roleTitle = `🏛️ ${adminUser?.full_name || 'Ban Giám Đốc Bệnh Viện'}`;
+    else if (adminUser?.role === 'dept_head') roleTitle = `🏥 ${adminUser?.full_name || 'Trưởng Khoa/Phòng'}`;
+    else if (adminUser?.role === 'inspector') roleTitle = `🔍 ${adminUser?.full_name || 'Thanh Tra QLCL'}`;
+
+    document.getElementById('adminUserGreeting').innerText = roleTitle;
+
+    if (btnUserMgmt) {
+      if (adminUser?.role === 'admin') {
+        btnUserMgmt.classList.remove('hidden');
+      } else {
+        btnUserMgmt.classList.add('hidden');
+      }
+    }
+
     loadAdminFeedbacks();
     loadStatsAndCharts();
   } else {
@@ -1245,5 +1262,160 @@ async function handleSaveCategory(e) {
     }
   } catch (err) {
     alert('❌ Lỗi hệ thống khi lưu Phân Loại!');
+  }
+}
+
+// USER MANAGEMENT LOGIC
+let allUsers = [];
+
+function openUserModal() {
+  const modal = document.getElementById('modalUserManager');
+  if (modal) modal.classList.remove('hidden');
+  populateUserDeptDropdown();
+  loadUserList();
+}
+
+function closeUserModal() {
+  const modal = document.getElementById('modalUserManager');
+  if (modal) modal.classList.add('hidden');
+  resetUserForm();
+}
+
+function toggleUserDeptSelect() {
+  const role = document.getElementById('userRole').value;
+  const container = document.getElementById('userDeptContainer');
+  if (container) {
+    if (role === 'dept_head') {
+      container.classList.remove('hidden');
+    } else {
+      container.classList.add('hidden');
+    }
+  }
+}
+
+function populateUserDeptDropdown() {
+  const select = document.getElementById('userDeptId');
+  if (!select) return;
+
+  let optionsHtml = '<option value="">-- Chọn Khoa/Phòng phụ trách --</option>';
+  allDepartments.forEach(d => {
+    optionsHtml += `<option value="${d.id}">${escapeHtml(d.name)}</option>`;
+  });
+  select.innerHTML = optionsHtml;
+}
+
+async function loadUserList() {
+  if (!adminToken) return;
+  try {
+    const res = await fetch('/api/users', {
+      headers: { 'Authorization': `Bearer ${adminToken}` }
+    });
+    const data = await res.json();
+    if (data.success) {
+      allUsers = data.data || [];
+      renderUsersTable();
+    }
+  } catch (e) {
+    console.error('Lỗi nạp danh sách user:', e);
+  }
+}
+
+function renderUsersTable() {
+  const tbody = document.getElementById('tableUserList');
+  if (!tbody) return;
+
+  if (allUsers.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">Chưa có người dùng nào.</td></tr>';
+    return;
+  }
+
+  let html = '';
+  allUsers.forEach(u => {
+    let roleBadge = '<span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded font-semibold text-[10px]">🏥 Trưởng Khoa</span>';
+    if (u.role === 'leader') roleBadge = '<span class="px-2 py-0.5 bg-purple-100 text-purple-800 rounded font-semibold text-[10px]">🏛️ Ban Giám Đốc</span>';
+    else if (u.role === 'inspector') roleBadge = '<span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded font-semibold text-[10px]">🔍 Thanh Tra QLCL</span>';
+    else if (u.role === 'admin') roleBadge = '<span class="px-2 py-0.5 bg-red-100 text-red-800 rounded font-semibold text-[10px]">🛡️ Admin</span>';
+
+    html += `
+      <tr class="hover:bg-slate-50">
+        <td class="p-3 font-bold text-slate-800 font-mono">${escapeHtml(u.username)}</td>
+        <td class="p-3 font-semibold text-slate-700">${escapeHtml(u.full_name)}</td>
+        <td class="p-3">${roleBadge}</td>
+        <td class="p-3 text-slate-600">${escapeHtml(u.department_name || 'Toàn bệnh viện')}</td>
+        <td class="p-3 text-center">
+          <button onclick="editUser(${u.id})" class="px-2 py-1 bg-sky-100 text-sky-700 hover:bg-sky-200 font-semibold rounded text-[11px]">
+            <i class="fa-solid fa-pen-to-square"></i> Sửa
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+
+  tbody.innerHTML = html;
+}
+
+function resetUserForm() {
+  document.getElementById('userId').value = '';
+  document.getElementById('userUsername').value = '';
+  document.getElementById('userUsername').readOnly = false;
+  document.getElementById('userFullName').value = '';
+  document.getElementById('userPassword').value = '';
+  document.getElementById('userRole').value = 'dept_head';
+  document.getElementById('userDeptId').value = '';
+  toggleUserDeptSelect();
+}
+
+function editUser(id) {
+  const u = allUsers.find(item => item.id === id);
+  if (!u) return;
+
+  document.getElementById('userId').value = u.id;
+  document.getElementById('userUsername').value = u.username;
+  document.getElementById('userUsername').readOnly = true;
+  document.getElementById('userFullName').value = u.full_name;
+  document.getElementById('userPassword').value = '';
+  document.getElementById('userRole').value = u.role;
+  toggleUserDeptSelect();
+  if (u.department_id) {
+    document.getElementById('userDeptId').value = u.department_id;
+  }
+}
+
+async function handleSaveUser(e) {
+  e.preventDefault();
+  if (!adminToken) return;
+
+  const id = document.getElementById('userId').value;
+  const username = document.getElementById('userUsername').value;
+  const full_name = document.getElementById('userFullName').value;
+  const password = document.getElementById('userPassword').value;
+  const role = document.getElementById('userRole').value;
+  const department_id = document.getElementById('userDeptId').value;
+
+  if (role === 'dept_head' && !department_id) {
+    alert('Vui lòng chọn Khoa/Phòng phụ trách cho tài khoản Trưởng Khoa!');
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/users', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${adminToken}`
+      },
+      body: JSON.stringify({ id, username, full_name, password, role, department_id })
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      alert('✅ ' + data.message);
+      resetUserForm();
+      loadUserList();
+    } else {
+      alert('❌ Lỗi: ' + data.message);
+    }
+  } catch (err) {
+    alert('❌ Lỗi kết nối khi lưu tài khoản!');
   }
 }

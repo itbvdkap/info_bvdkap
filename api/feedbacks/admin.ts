@@ -1,7 +1,6 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { isSupabaseEnabled, supabase, querySqlite } from '../_db';
 import jwt from 'jsonwebtoken';
-
 import { applySecurityHeaders, checkRateLimit } from '../_security';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'anphu_info_benhvien_secret_key_2026_safe_jwt';
@@ -32,6 +31,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const { status, department_id, category_id, priority, keyword, from_date, to_date } = req.query;
 
+    let targetDeptId: number | null = null;
+    if (user?.role === 'dept_head' && user?.department_id) {
+      targetDeptId = Number(user.department_id);
+    } else if (department_id && department_id !== 'all' && department_id !== '' && department_id !== 'undefined' && !isNaN(Number(department_id)) && Number(department_id) > 0) {
+      targetDeptId = Number(department_id);
+    }
+
     let items: any[] = [];
 
     if (isSupabaseEnabled && supabase) {
@@ -51,8 +57,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (status && status !== 'all' && status !== '' && status !== 'undefined') {
         query = query.eq('status', String(status));
       }
-      if (department_id && department_id !== 'all' && department_id !== '' && department_id !== 'undefined' && !isNaN(Number(department_id)) && Number(department_id) > 0) {
-        query = query.eq('department_id', Number(department_id));
+      if (targetDeptId) {
+        query = query.eq('department_id', targetDeptId);
       }
       if (category_id && category_id !== 'all' && category_id !== '' && category_id !== 'undefined' && !isNaN(Number(category_id)) && Number(category_id) > 0) {
         query = query.eq('category_id', Number(category_id));
@@ -90,7 +96,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (from_date && from_date !== 'undefined') { sql += ' AND f.created_at >= ?'; params.push(`${from_date} 00:00:00`); }
       if (to_date && to_date !== 'undefined') { sql += ' AND f.created_at <= ?'; params.push(`${to_date} 23:59:59`); }
       if (status && status !== 'all' && status !== '' && status !== 'undefined') { sql += ' AND f.status = ?'; params.push(status); }
-      if (department_id && department_id !== 'all' && department_id !== '' && department_id !== 'undefined' && Number(department_id) > 0) { sql += ' AND f.department_id = ?'; params.push(department_id); }
+      if (targetDeptId) { sql += ' AND f.department_id = ?'; params.push(targetDeptId); }
       if (category_id && category_id !== 'all' && category_id !== '' && category_id !== 'undefined' && Number(category_id) > 0) { sql += ' AND f.category_id = ?'; params.push(category_id); }
       if (priority && priority !== 'all' && priority !== '' && priority !== 'undefined') { sql += ' AND f.priority = ?'; params.push(priority); }
       if (keyword) {
