@@ -7,7 +7,7 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 export const isSupabaseEnabled = Boolean(supabaseUrl && supabaseKey);
 
 export const supabase = isSupabaseEnabled
-  ? createClient(supabaseUrl!, supabaseKey!, { db: { schema: 'info' } })
+  ? createClient(supabaseUrl!, supabaseKey!)
   : null;
 
 // SQLite Fallback

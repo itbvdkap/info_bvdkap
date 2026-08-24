@@ -13,9 +13,7 @@ if (!supabaseUrl || !supabaseKey) {
   process.exit(1);
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey, {
-  db: { schema: 'info' }
-});
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const dbPath = path.resolve(__dirname, '../backend/info_benhvienanphu.sqlite');
 const db = new sqlite3.Database(dbPath);
