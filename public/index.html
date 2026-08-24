@@ -20,32 +20,32 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
-  <!-- TOP HEADER -->
-  <header class="bg-gradient-to-r from-sky-700 to-sky-900 text-white shadow-lg sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
-      <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('submit')">
-        <div class="w-12 h-12 bg-white text-sky-700 rounded-full flex items-center justify-center font-bold text-2xl shadow">
+  <!-- TOP HEADER (COMPACT MOBILE-FIRST APP BAR) -->
+  <header class="bg-gradient-to-r from-sky-700 to-sky-900 text-white shadow-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-3 py-2 flex flex-wrap justify-between items-center gap-2">
+      <div class="flex items-center space-x-2 shrink-0 cursor-pointer" onclick="switchTab('submit')">
+        <div class="w-8 h-8 sm:w-10 sm:h-10 bg-white text-sky-700 rounded-full flex items-center justify-center font-bold text-base sm:text-xl shadow shrink-0">
           <i class="fa-solid fa-hospital-user"></i>
         </div>
         <div>
-          <h1 class="text-xl font-bold tracking-tight">BỆNH VIỆN AN PHÚ</h1>
-          <p class="text-xs text-sky-200 font-medium">info.benhvienanphu.vn • Cổng Báo Cáo & Ý Kiến Đóng Góp</p>
+          <h1 class="text-sm sm:text-lg font-extrabold tracking-tight">BỆNH VIỆN AN PHÚ</h1>
+          <p class="hidden sm:block text-[11px] text-sky-200 font-medium">info.benhvienanphu.vn • Cổng Báo Cáo & Ý Kiến Đóng Góp</p>
         </div>
       </div>
 
-      <!-- MAIN NAVIGATION TABS -->
-      <nav class="flex items-center bg-sky-800/60 p-1 rounded-xl text-sm font-medium">
-        <button id="tabBtnSubmit" onclick="switchTab('submit')" class="px-4 py-2 rounded-lg transition-all flex items-center space-x-2 bg-white text-sky-800 shadow">
-          <i class="fa-solid fa-paper-plane"></i>
+      <!-- MAIN NAVIGATION TABS (COMPACT SEGMENTED PILLS) -->
+      <nav class="flex items-center bg-sky-950/40 p-0.5 rounded-xl text-xs font-semibold shadow-inner">
+        <button id="tabBtnSubmit" onclick="switchTab('submit')" class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg transition-all flex items-center space-x-1 bg-white text-sky-800 shadow">
+          <i class="fa-solid fa-paper-plane text-xs"></i>
           <span>Gửi Ý Kiến</span>
         </button>
-        <button id="tabBtnTrack" onclick="switchTab('track')" class="px-4 py-2 rounded-lg transition-all flex items-center space-x-2 text-sky-100 hover:text-white">
-          <i class="fa-solid fa-magnifying-glass"></i>
+        <button id="tabBtnTrack" onclick="switchTab('track')" class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg transition-all flex items-center space-x-1 text-sky-100 hover:text-white">
+          <i class="fa-solid fa-magnifying-glass text-xs"></i>
           <span>Tra Cứu</span>
         </button>
-        <button id="tabBtnAdmin" onclick="switchTab('admin')" class="px-4 py-2 rounded-lg transition-all flex items-center space-x-2 text-sky-100 hover:text-white">
-          <i class="fa-solid fa-user-shield"></i>
-          <span>Quản Trị Lãnh Đạo</span>
+        <button id="tabBtnAdmin" onclick="switchTab('admin')" class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg transition-all flex items-center space-x-1 text-sky-100 hover:text-white">
+          <i class="fa-solid fa-user-shield text-xs"></i>
+          <span>Quản Trị</span>
         </button>
       </nav>
     </div>
@@ -477,8 +477,8 @@
             </button>
           </div>
 
-          <!-- Collapsible Extended Filter Tray -->
-          <div id="extendedFilterTray" class="hidden grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-2 pt-2 border-t border-slate-100">
+          <!-- Collapsible Extended Filter Tray (Hidden by default on mobile) -->
+          <div id="extendedFilterTray" style="display: none;" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-2 pt-2 border-t border-slate-100">
             <div class="flex items-center space-x-1">
               <span class="text-[10px] font-semibold text-slate-500 whitespace-nowrap">Từ:</span>
               <input type="date" id="filterFromDate" onchange="loadAdminFeedbacks()" class="w-full px-2 py-1.5 text-xs border border-slate-300 rounded-xl bg-white">

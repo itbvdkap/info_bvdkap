@@ -583,7 +583,11 @@ function renderFeedbacksTable(items) {
 function toggleMobileFilters() {
   const tray = document.getElementById('extendedFilterTray');
   if (tray) {
-    tray.classList.toggle('hidden');
+    if (tray.style.display === 'none' || !tray.style.display) {
+      tray.style.display = 'grid';
+    } else {
+      tray.style.display = 'none';
+    }
   }
 }
 
