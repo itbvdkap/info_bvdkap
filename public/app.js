@@ -510,13 +510,16 @@ function renderFeedbacksTable(items) {
 
     const senderText = item.is_anonymous ? '<span class="text-slate-400 font-medium">🔒 Ẩn danh</span>' : `<strong>${escapeHtml(item.sender_name || 'Nhân viên')}</strong> ${item.sender_phone ? `<br><span class="text-slate-400 text-[10px]">${item.sender_phone}</span>` : ''}`;
 
+    const deptStr = typeof item.department_name === 'object' ? (item.department_name?.name || 'N/A') : (item.department_name || 'N/A');
+    const catStr = typeof item.category_name === 'object' ? (item.category_name?.name || 'N/A') : (item.category_name || 'N/A');
+
     html += `
       <tr class="hover:bg-slate-50 transition">
         <td class="p-3.5 font-bold text-sky-700">${item.tracking_code}</td>
         <td class="p-3.5">${priorityBadge}</td>
         <td class="p-3.5">
-          <div class="font-semibold text-slate-800">${escapeHtml(item.department_name || 'N/A')}</div>
-          <div class="text-slate-400 text-[11px]">${escapeHtml(item.category_name || 'N/A')}</div>
+          <div class="font-semibold text-slate-800">${escapeHtml(deptStr)}</div>
+          <div class="text-slate-400 text-[11px]">${escapeHtml(catStr)}</div>
         </td>
         <td class="p-3.5">${senderText}</td>
         <td class="p-3.5 max-w-xs">
@@ -882,5 +885,103 @@ function clearDeviceHistory() {
   if (confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử ý kiến lưu trên máy này?')) {
     localStorage.removeItem(LOCAL_STORAGE_HISTORY_KEY);
     renderDeviceHistory();
+  }
+}
+
+// Department Catalog Manager Handlers
+function openDepartmentModal() {
+  renderDepartmentTable();
+  document.getElementById('modalDepartmentManager').classList.remove('hidden');
+}
+
+function closeDepartmentModal() {
+  document.getElementById('modalDepartmentManager').classList.add('hidden');
+  resetDeptForm();
+}
+
+function renderDepartmentTable() {
+  const tbody = document.getElementById('tableDeptList');
+  if (!tbody) return;
+
+  if (!departmentsList || departmentsList.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">Chưa có dữ liệu Khoa/Phòng.</td></tr>';
+    return;
+  }
+
+  let html = '';
+  departmentsList.forEach(d => {
+    const activeBadge = d.active !== 0
+      ? '<span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-semibold text-[10px]">Hoạt động</span>'
+      : '<span class="px-2 py-0.5 bg-slate-100 text-slate-500 rounded text-[10px]">Tạm khóa</span>';
+
+    html += `
+      <tr class="hover:bg-slate-50 transition">
+        <td class="p-3 text-slate-400 font-mono">${d.id}</td>
+        <td class="p-3 font-bold text-sky-700 font-mono">${escapeHtml(d.code)}</td>
+        <td class="p-3 font-semibold text-slate-800">${escapeHtml(d.name)}</td>
+        <td class="p-3">${activeBadge}</td>
+        <td class="p-3 text-center">
+          <button type="button" onclick="editDepartment(${d.id})" class="px-2.5 py-1 bg-slate-100 hover:bg-sky-50 text-slate-700 hover:text-sky-700 rounded-lg font-semibold transition text-xs">
+            <i class="fa-solid fa-pen-to-square"></i> Sửa
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+
+  tbody.innerHTML = html;
+}
+
+function editDepartment(id) {
+  const dept = departmentsList.find(d => d.id === id);
+  if (!dept) return;
+
+  document.getElementById('deptFormId').value = dept.id;
+  document.getElementById('deptFormName').value = dept.name;
+  document.getElementById('deptFormCode').value = dept.code;
+  document.getElementById('deptFormActive').checked = dept.active !== 0;
+  document.getElementById('deptFormTitle').innerText = `✏️ Chỉnh sửa Khoa/Phòng (ID: ${dept.id})`;
+}
+
+function resetDeptForm() {
+  document.getElementById('deptFormId').value = '';
+  document.getElementById('deptFormName').value = '';
+  document.getElementById('deptFormCode').value = '';
+  document.getElementById('deptFormActive').checked = true;
+  document.getElementById('deptFormTitle').innerText = '➕ Thêm Khoa/Phòng mới';
+}
+
+async function handleSaveDepartment(e) {
+  e.preventDefault();
+  if (!adminToken) {
+    alert('Vui lòng đăng nhập lại tài khoản Admin!');
+    return;
+  }
+
+  const id = document.getElementById('deptFormId').value;
+  const name = document.getElementById('deptFormName').value.trim();
+  const code = document.getElementById('deptFormCode').value.trim().toUpperCase();
+  const active = document.getElementById('deptFormActive').checked ? 1 : 0;
+
+  try {
+    const res = await fetch('/api/departments', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${adminToken}`
+      },
+      body: JSON.stringify({ id: id ? Number(id) : undefined, name, code, active })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert('✅ ' + data.message);
+      resetDeptForm();
+      await loadMetadata(); // Reload departmentsList & dropdowns
+      renderDepartmentTable();
+    } else {
+      alert('❌ ' + data.message);
+    }
+  } catch (err) {
+    alert('❌ Lỗi hệ thống khi lưu Khoa/Phòng!');
   }
 }
