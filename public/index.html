@@ -365,13 +365,17 @@
           <div class="flex items-center space-x-2">
             <button onclick="openDepartmentModal()" class="px-3.5 py-2 bg-sky-50 hover:bg-sky-100 text-sky-700 text-xs font-semibold rounded-xl border border-sky-200 transition flex items-center space-x-1.5">
               <i class="fa-solid fa-hospital-user text-base text-sky-600"></i>
-              <span>Quản Lý Khoa/Phòng</span>
+              <span>DM Khoa/Phòng</span>
+            </button>
+            <button onclick="openCategoryModal()" class="px-3.5 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-semibold rounded-xl border border-purple-200 transition flex items-center space-x-1.5">
+              <i class="fa-solid fa-list-check text-base text-purple-600"></i>
+              <span>DM Phân Loại</span>
             </button>
             <button onclick="openNotificationModal()" class="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-xl border border-indigo-200 transition flex items-center space-x-1.5">
               <i class="fa-solid fa-bell text-base text-amber-500"></i>
-              <span>Cấu Hình Thông Báo</span>
+              <span>Thông Báo</span>
             </button>
-            <button onclick="exportExcel()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl shadow transition flex items-center space-x-1.5">
+            <button onclick="openExportModal()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl shadow transition flex items-center space-x-1.5">
               <i class="fa-solid fa-file-excel"></i>
               <span>Xuất Báo Cáo Excel</span>
             </button>
@@ -459,15 +463,23 @@
 
         <!-- SEARCH & FILTER TOOLBAR -->
         <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-          <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
-            <input type="text" id="filterKeyword" oninput="loadAdminFeedbacks()" class="px-3.5 py-2 text-xs border border-slate-300 rounded-xl" placeholder="Tìm tiêu đề, nội dung, mã tra cứu...">
+          <div class="grid grid-cols-1 md:grid-cols-7 gap-2.5">
+            <div class="flex items-center space-x-1">
+              <span class="text-[11px] font-semibold text-slate-500 whitespace-nowrap">Từ:</span>
+              <input type="date" id="filterFromDate" onchange="loadAdminFeedbacks()" class="w-full px-2 py-2 text-xs border border-slate-300 rounded-xl bg-white">
+            </div>
+            <div class="flex items-center space-x-1">
+              <span class="text-[11px] font-semibold text-slate-500 whitespace-nowrap">Đến:</span>
+              <input type="date" id="filterToDate" onchange="loadAdminFeedbacks()" class="w-full px-2 py-2 text-xs border border-slate-300 rounded-xl bg-white">
+            </div>
+            <input type="text" id="filterKeyword" oninput="loadAdminFeedbacks()" class="px-3 py-2 text-xs border border-slate-300 rounded-xl" placeholder="Tìm kiếm từ khóa...">
             
             <select id="filterStatus" onchange="loadAdminFeedbacks()" class="px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white">
               <option value="all">-- Tất cả trạng thái --</option>
-              <option value="pending">Mới tiếp nhận</option>
-              <option value="processing">Đang xử lý</option>
-              <option value="resolved">Đã giải quyết</option>
-              <option value="rejected">Từ chối / Khác</option>
+              <option value="pending">⏳ Mới tiếp nhận</option>
+              <option value="processing">⚙️ Đang xử lý</option>
+              <option value="resolved">✅ Đã giải quyết</option>
+              <option value="rejected">❌ Từ chối / Bỏ qua</option>
             </select>
 
             <select id="filterDepartment" onchange="loadAdminFeedbacks()" class="px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white">
@@ -477,6 +489,14 @@
             <select id="filterCategory" onchange="loadAdminFeedbacks()" class="px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white">
               <option value="all">-- Tất cả Phân loại --</option>
             </select>
+
+            <select id="filterPriority" onchange="loadAdminFeedbacks()" class="px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white">
+              <option value="all">-- Tất cả mức độ --</option>
+              <option value="urgent">🚨 Khẩn cấp</option>
+              <option value="high">⚠️ Quan trọng</option>
+              <option value="normal">📌 Bình thường</option>
+            </select>
+          </div>
 
             <select id="filterPriority" onchange="loadAdminFeedbacks()" class="px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white">
               <option value="all">-- Tất cả mức độ --</option>
@@ -743,6 +763,148 @@
             </tr>
           </thead>
           <tbody id="tableDeptList" class="divide-y divide-slate-100">
+            <!-- Injected dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CUSTOM EXCEL EXPORT OPTIONS -->
+  <div id="modalExportExcel" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-5">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-lg text-slate-800 flex items-center space-x-2 text-emerald-700">
+          <i class="fa-solid fa-file-excel text-emerald-600"></i>
+          <span>Xuất Báo Cáo Ý Kiến Bệnh Viện (Excel)</span>
+        </h3>
+        <button onclick="closeExportModal()" class="text-slate-400 hover:text-slate-600 p-1">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <!-- Date Range -->
+        <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">📅 Từ ngày</label>
+            <input type="date" id="exportFromDate" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">📅 Đến ngày</label>
+            <input type="date" id="exportToDate" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white">
+          </div>
+        </div>
+
+        <!-- Filter Dropdowns -->
+        <div class="space-y-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">🏥 Khoa / Phòng Ban</label>
+            <select id="exportDepartment" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white">
+              <option value="all">-- Tất cả Khoa / Phòng Ban --</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">⚙️ Tình Trạng Xử Lý</label>
+            <select id="exportStatus" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white">
+              <option value="all">-- Tất cả Tình Trạng --</option>
+              <option value="pending">⏳ Mới tiếp nhận</option>
+              <option value="processing">⚙️ Đang xử lý</option>
+              <option value="resolved">✅ Đã giải quyết</option>
+              <option value="rejected">❌ Từ chối / Bỏ qua</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">📁 Chuyên Mục / Phân Loại</label>
+            <select id="exportCategory" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white">
+              <option value="all">-- Tất cả Chuyên Mục --</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">🚨 Mức Độ Khẩn Cấp</label>
+            <select id="exportPriority" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white">
+              <option value="all">-- Tất cả Mức Độ --</option>
+              <option value="urgent">🚨 Khẩn cấp</option>
+              <option value="high">⚠️ Quan trọng</option>
+              <option value="normal">📌 Bình thường</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end space-x-3 pt-2 border-t border-slate-100">
+        <button type="button" onclick="closeExportModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs">Hủy bỏ</button>
+        <button type="button" onclick="triggerExcelDownload()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow flex items-center space-x-1.5">
+          <i class="fa-solid fa-download"></i>
+          <span>XUẤT BÁO CÁO EXCEL</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CATEGORY CATALOG MANAGER -->
+  <div id="modalCategoryManager" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-lg text-slate-800 flex items-center space-x-2 text-purple-700">
+          <i class="fa-solid fa-list-check text-purple-600"></i>
+          <span>Quản Lý Danh Mục Phân Loại Báo Cáo</span>
+        </h3>
+        <button onclick="closeCategoryModal()" class="text-slate-400 hover:text-slate-600 p-1">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+
+      <!-- Add/Edit Category Form -->
+      <form onsubmit="handleSaveCategory(event)" class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+        <input type="hidden" id="catFormId">
+        <div class="font-bold text-xs text-slate-700 uppercase tracking-wider flex justify-between items-center">
+          <span id="catFormTitle">➕ Thêm Phân Loại mới</span>
+          <button type="button" onclick="resetCatForm()" class="text-[11px] text-slate-400 hover:text-purple-600 font-normal">Hủy chỉnh sửa</button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+          <div class="md:col-span-2">
+            <label class="block font-semibold text-slate-700 mb-1">Tên Phân Loại <span class="text-red-500">*</span></label>
+            <input type="text" id="catFormName" required class="w-full px-3 py-2 border border-slate-300 rounded-xl" placeholder="Ví dụ: 💡 Đề xuất / Sáng kiến">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Mã Phân Loại <span class="text-red-500">*</span></label>
+            <input type="text" id="catFormCode" required class="w-full px-3 py-2 border border-slate-300 rounded-xl uppercase font-mono" placeholder="PROPOSAL">
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Biểu tượng FontAwesome</label>
+            <input type="text" id="catFormIcon" class="w-full px-3 py-2 border border-slate-300 rounded-xl font-mono" placeholder="lightbulb">
+          </div>
+          <div class="md:col-span-2">
+            <label class="block font-semibold text-slate-700 mb-1">Mô tả ngắn</label>
+            <input type="text" id="catFormDesc" class="w-full px-3 py-2 border border-slate-300 rounded-xl" placeholder="Mô tả mục đích phân loại...">
+          </div>
+        </div>
+        <div class="flex justify-end pt-1">
+          <button type="submit" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs shadow">
+            <i class="fa-solid fa-floppy-disk mr-1"></i> LƯU PHÂN LOẠI
+          </button>
+        </div>
+      </form>
+
+      <!-- Category List Table -->
+      <div class="border border-slate-200 rounded-2xl overflow-hidden text-xs">
+        <table class="w-full text-left">
+          <thead class="bg-slate-50 border-b border-slate-200 font-bold text-slate-600 uppercase">
+            <tr>
+              <th class="p-3">ID</th>
+              <th class="p-3">Mã</th>
+              <th class="p-3">Tên Phân Loại</th>
+              <th class="p-3">Mô Tả</th>
+              <th class="p-3 text-center">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="tableCatList" class="divide-y divide-slate-100">
             <!-- Injected dynamically -->
           </tbody>
         </table>

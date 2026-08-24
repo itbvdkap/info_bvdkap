@@ -26,7 +26,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     jwt.verify(token, JWT_SECRET);
 
-    const { status, department_id, category_id, priority, keyword } = req.query;
+    const { status, department_id, category_id, priority, keyword, from_date, to_date } = req.query;
 
     let items: any[] = [];
 
@@ -38,6 +38,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         responder_name:users(full_name)
       `);
 
+      if (from_date && from_date !== 'undefined') {
+        query = query.gte('created_at', `${from_date}T00:00:00.000Z`);
+      }
+      if (to_date && to_date !== 'undefined') {
+        query = query.lte('created_at', `${to_date}T23:59:59.999Z`);
+      }
       if (status && status !== 'all' && status !== '' && status !== 'undefined') {
         query = query.eq('status', String(status));
       }
@@ -90,10 +96,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       `;
       const params: any[] = [];
 
-      if (status && status !== 'all') { sql += ' AND f.status = ?'; params.push(status); }
-      if (department_id && department_id !== 'all') { sql += ' AND f.department_id = ?'; params.push(department_id); }
-      if (category_id && category_id !== 'all') { sql += ' AND f.category_id = ?'; params.push(category_id); }
-      if (priority && priority !== 'all') { sql += ' AND f.priority = ?'; params.push(priority); }
+      if (from_date && from_date !== 'undefined') { sql += ' AND f.created_at >= ?'; params.push(`${from_date} 00:00:00`); }
+      if (to_date && to_date !== 'undefined') { sql += ' AND f.created_at <= ?'; params.push(`${to_date} 23:59:59`); }
+      if (status && status !== 'all' && status !== '' && status !== 'undefined') { sql += ' AND f.status = ?'; params.push(status); }
+      if (department_id && department_id !== 'all' && department_id !== '' && department_id !== 'undefined' && Number(department_id) > 0) { sql += ' AND f.department_id = ?'; params.push(department_id); }
+      if (category_id && category_id !== 'all' && category_id !== '' && category_id !== 'undefined' && Number(category_id) > 0) { sql += ' AND f.category_id = ?'; params.push(category_id); }
+      if (priority && priority !== 'all' && priority !== '' && priority !== 'undefined') { sql += ' AND f.priority = ?'; params.push(priority); }
       if (keyword) {
         sql += ' AND (f.title LIKE ? OR f.content LIKE ? OR f.tracking_code LIKE ?)';
         const kw = `%${keyword}%`;

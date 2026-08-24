@@ -469,9 +469,13 @@ async function loadAdminFeedbacks() {
   const department_id = document.getElementById('filterDepartment')?.value || 'all';
   const category_id = document.getElementById('filterCategory')?.value || 'all';
   const priority = document.getElementById('filterPriority')?.value || 'all';
+  const from_date = document.getElementById('filterFromDate')?.value || '';
+  const to_date = document.getElementById('filterToDate')?.value || '';
 
   const queryParams = new URLSearchParams();
   if (keyword) queryParams.append('keyword', keyword);
+  if (from_date) queryParams.append('from_date', from_date);
+  if (to_date) queryParams.append('to_date', to_date);
   if (status && status !== 'all') queryParams.append('status', status);
   if (department_id && department_id !== 'all') queryParams.append('department_id', department_id);
   if (category_id && category_id !== 'all') queryParams.append('category_id', category_id);
@@ -997,5 +1001,165 @@ async function handleSaveDepartment(e) {
     }
   } catch (err) {
     alert('❌ Lỗi hệ thống khi lưu Khoa/Phòng!');
+  }
+}
+
+// Modal Export Excel Custom Handlers
+function openExportModal() {
+  const modal = document.getElementById('modalExportExcel');
+  if (!modal) return;
+
+  // Populate department dropdown
+  const deptSelect = document.getElementById('exportDepartment');
+  let deptHtml = '<option value="all">-- Tất cả Khoa / Phòng Ban --</option>';
+  departmentsList.forEach(d => {
+    if (d.active !== 0) deptHtml += `<option value="${d.id}">${escapeHtml(d.name)} (${d.code})</option>`;
+  });
+  deptSelect.innerHTML = deptHtml;
+
+  // Populate category dropdown
+  const catSelect = document.getElementById('exportCategory');
+  let catHtml = '<option value="all">-- Tất cả Chuyên Mục --</option>';
+  categoriesList.forEach(c => {
+    catHtml += `<option value="${c.id}">${escapeHtml(c.name)}</option>`;
+  });
+  catSelect.innerHTML = catHtml;
+
+  // Sync values from current filters if available
+  document.getElementById('exportFromDate').value = document.getElementById('filterFromDate')?.value || '';
+  document.getElementById('exportToDate').value = document.getElementById('filterToDate')?.value || '';
+  document.getElementById('exportDepartment').value = document.getElementById('filterDepartment')?.value || 'all';
+  document.getElementById('exportStatus').value = document.getElementById('filterStatus')?.value || 'all';
+  document.getElementById('exportCategory').value = document.getElementById('filterCategory')?.value || 'all';
+  document.getElementById('exportPriority').value = document.getElementById('filterPriority')?.value || 'all';
+
+  modal.classList.remove('hidden');
+}
+
+function closeExportModal() {
+  document.getElementById('modalExportExcel')?.classList.add('hidden');
+}
+
+function triggerExcelDownload() {
+  if (!adminToken) {
+    alert('Vui lòng đăng nhập lại tài khoản Admin để xuất file Excel!');
+    return;
+  }
+
+  const from_date = document.getElementById('exportFromDate')?.value || '';
+  const to_date = document.getElementById('exportToDate')?.value || '';
+  const department_id = document.getElementById('exportDepartment')?.value || 'all';
+  const status = document.getElementById('exportStatus')?.value || 'all';
+  const category_id = document.getElementById('exportCategory')?.value || 'all';
+  const priority = document.getElementById('exportPriority')?.value || 'all';
+
+  const queryParams = new URLSearchParams();
+  queryParams.append('token', adminToken);
+  if (from_date) queryParams.append('from_date', from_date);
+  if (to_date) queryParams.append('to_date', to_date);
+  if (status && status !== 'all') queryParams.append('status', status);
+  if (department_id && department_id !== 'all') queryParams.append('department_id', department_id);
+  if (category_id && category_id !== 'all') queryParams.append('category_id', category_id);
+  if (priority && priority !== 'all') queryParams.append('priority', priority);
+
+  const url = `/api/export/excel?${queryParams.toString()}`;
+  closeExportModal();
+  window.open(url, '_blank');
+}
+
+// Category Catalog Manager Handlers
+function openCategoryModal() {
+  renderCategoryTable();
+  document.getElementById('modalCategoryManager')?.classList.remove('hidden');
+}
+
+function closeCategoryModal() {
+  document.getElementById('modalCategoryManager')?.classList.add('hidden');
+  resetCatForm();
+}
+
+function renderCategoryTable() {
+  const tbody = document.getElementById('tableCatList');
+  if (!tbody) return;
+
+  if (!categoriesList || categoriesList.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">Chưa có dữ liệu Phân Loại.</td></tr>';
+    return;
+  }
+
+  let html = '';
+  categoriesList.forEach(c => {
+    html += `
+      <tr class="hover:bg-slate-50 transition">
+        <td class="p-3 text-slate-400 font-mono">${c.id}</td>
+        <td class="p-3 font-bold text-purple-700 font-mono">${escapeHtml(c.code)}</td>
+        <td class="p-3 font-semibold text-slate-800">${escapeHtml(c.name)}</td>
+        <td class="p-3 text-slate-500 text-[11px] max-w-xs truncate">${escapeHtml(c.description || '--')}</td>
+        <td class="p-3 text-center">
+          <button type="button" onclick="editCategory(${c.id})" class="px-2.5 py-1 bg-slate-100 hover:bg-purple-50 text-slate-700 hover:text-purple-700 rounded-lg font-semibold transition text-xs">
+            <i class="fa-solid fa-pen-to-square"></i> Sửa
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+
+  tbody.innerHTML = html;
+}
+
+function editCategory(id) {
+  const cat = categoriesList.find(c => c.id === id);
+  if (!cat) return;
+
+  document.getElementById('catFormId').value = cat.id;
+  document.getElementById('catFormName').value = cat.name;
+  document.getElementById('catFormCode').value = cat.code;
+  document.getElementById('catFormIcon').value = cat.icon || '';
+  document.getElementById('catFormDesc').value = cat.description || '';
+  document.getElementById('catFormTitle').innerText = `✏️ Chỉnh sửa Phân Loại (ID: ${cat.id})`;
+}
+
+function resetCatForm() {
+  document.getElementById('catFormId').value = '';
+  document.getElementById('catFormName').value = '';
+  document.getElementById('catFormCode').value = '';
+  document.getElementById('catFormIcon').value = '';
+  document.getElementById('catFormDesc').value = '';
+  document.getElementById('catFormTitle').innerText = '➕ Thêm Phân Loại mới';
+}
+
+async function handleSaveCategory(e) {
+  e.preventDefault();
+  if (!adminToken) {
+    alert('Vui lòng đăng nhập lại tài khoản Admin!');
+    return;
+  }
+
+  const id = document.getElementById('catFormId').value;
+  const name = document.getElementById('catFormName').value.trim();
+  const code = document.getElementById('catFormCode').value.trim().toUpperCase();
+  const icon = document.getElementById('catFormIcon').value.trim();
+  const description = document.getElementById('catFormDesc').value.trim();
+
+  try {
+    const res = await fetch('/api/categories', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${adminToken}`
+      },
+      body: JSON.stringify({ id: id ? Number(id) : undefined, name, code, icon, description })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert('✅ ' + data.message);
+      resetCatForm();
+      await loadMetadata(); // Reload categoriesList & dropdowns
+      renderCategoryTable();
+    } else {
+      alert('❌ ' + data.message);
+    }
+  } catch (err) {
+    alert('❌ Lỗi hệ thống khi lưu Phân Loại!');
   }
 }
