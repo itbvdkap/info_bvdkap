@@ -55,8 +55,8 @@ async function runLiveTest() {
 
   const token = loginRes.token;
 
-  const usersRes: any = await testLiveEndpoint('/api/user-management', token);
-  console.log('HTTP Status /api/user-management:', usersRes.status);
+  const usersRes: any = await testLiveEndpoint('/api/users', token);
+  console.log('HTTP Status /api/users:', usersRes.status);
   console.log('Nội dung danh sách tài khoản:', JSON.stringify(usersRes.data || usersRes.raw, null, 2));
 
   if (usersRes.status === 200 && usersRes.data?.success) {
