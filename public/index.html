@@ -498,18 +498,10 @@
             </select>
           </div>
 
-            <select id="filterPriority" onchange="loadAdminFeedbacks()" class="px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white">
-              <option value="all">-- Tất cả mức độ --</option>
-              <option value="urgent">🚨 Khẩn cấp</option>
-              <option value="high">⚠️ Quan trọng</option>
-              <option value="normal">📌 Bình thường</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- FEEDBACKS TABLE DATA -->
+        <!-- FEEDBACKS TABLE & MOBILE RESPONSIVE CARDS -->
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div class="overflow-x-auto">
+          <!-- Desktop Table View (visible on md+) -->
+          <div class="hidden md:block overflow-x-auto">
             <table class="w-full text-left text-xs">
               <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider">
                 <tr>
@@ -526,6 +518,11 @@
                 <!-- Rows injected dynamically -->
               </tbody>
             </table>
+          </div>
+
+          <!-- Mobile Cards View (visible on mobile < md) -->
+          <div id="cardFeedbacksMobile" class="md:hidden divide-y divide-slate-100">
+            <!-- Mobile cards injected dynamically -->
           </div>
         </div>
 

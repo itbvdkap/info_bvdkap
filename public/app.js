@@ -499,12 +499,17 @@ async function loadAdminFeedbacks() {
 
 function renderFeedbacksTable(items) {
   const tbody = document.getElementById('tableFeedbacks');
+  const mobileContainer = document.getElementById('cardFeedbacksMobile');
+
   if (!items || items.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400">Không có dữ liệu báo cáo nào phù hợp.</td></tr>';
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400">Không có dữ liệu báo cáo nào phù hợp.</td></tr>';
+    if (mobileContainer) mobileContainer.innerHTML = '<div class="p-8 text-center text-slate-400 text-xs">Không có dữ liệu báo cáo nào phù hợp.</div>';
     return;
   }
 
-  let html = '';
+  let tableHtml = '';
+  let mobileHtml = '';
+
   items.forEach(item => {
     let priorityBadge = '<span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[11px]">Bình thường</span>';
     if (item.priority === 'urgent') priorityBadge = '<span class="px-2 py-0.5 bg-red-100 text-red-800 font-bold rounded text-[11px]">🚨 Khẩn cấp</span>';
@@ -520,9 +525,10 @@ function renderFeedbacksTable(items) {
     const deptStr = typeof item.department_name === 'object' ? (item.department_name?.name || 'N/A') : (item.department_name || 'N/A');
     const catStr = typeof item.category_name === 'object' ? (item.category_name?.name || 'N/A') : (item.category_name || 'N/A');
 
-    html += `
+    // Desktop Table Row
+    tableHtml += `
       <tr class="hover:bg-slate-50 transition">
-        <td class="p-3.5 font-bold text-sky-700">${item.tracking_code}</td>
+        <td class="p-3.5 font-bold text-sky-700 font-mono">${item.tracking_code}</td>
         <td class="p-3.5">${priorityBadge}</td>
         <td class="p-3.5">
           <div class="font-semibold text-slate-800">${escapeHtml(deptStr)}</div>
@@ -541,9 +547,37 @@ function renderFeedbacksTable(items) {
         </td>
       </tr>
     `;
+
+    // Mobile Responsive Card Item
+    mobileHtml += `
+      <div class="p-4 space-y-2.5 hover:bg-slate-50 transition border-b border-slate-100 last:border-none">
+        <div class="flex items-center justify-between">
+          <span class="font-extrabold text-sky-700 text-xs font-mono">${item.tracking_code}</span>
+          <div class="flex items-center space-x-1">
+            ${priorityBadge}
+            ${statusBadge}
+          </div>
+        </div>
+        <div>
+          <h5 class="font-bold text-slate-800 text-sm leading-snug">${escapeHtml(item.title)}</h5>
+          <p class="text-slate-600 text-xs line-clamp-3 mt-1 leading-relaxed">${escapeHtml(item.content)}</p>
+        </div>
+        <div class="flex items-center justify-between text-[11px] pt-2 border-t border-slate-100">
+          <div class="space-y-0.5">
+            <div class="font-semibold text-slate-700">🏥 ${escapeHtml(deptStr)}</div>
+            <div class="text-slate-400 text-[10px]">📁 ${escapeHtml(catStr)} • ${senderText}</div>
+          </div>
+          <button onclick="openRespondModal(${item.id})" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl text-xs shadow flex items-center space-x-1 shrink-0 ml-2">
+            <i class="fa-solid fa-pen-to-square"></i>
+            <span>Xử lý</span>
+          </button>
+        </div>
+      </div>
+    `;
   });
 
-  tbody.innerHTML = html;
+  if (tbody) tbody.innerHTML = tableHtml;
+  if (mobileContainer) mobileContainer.innerHTML = mobileHtml;
 }
 
 // Fetch Stats & Render Chart.js
