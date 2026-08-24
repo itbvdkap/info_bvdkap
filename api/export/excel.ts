@@ -6,6 +6,15 @@ import jwt from 'jsonwebtoken';
 const JWT_SECRET = process.env.JWT_SECRET || 'anphu_info_benhvien_secret_key_2026_safe_jwt';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // CORS Headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'GET') {
     return res.status(405).json({ success: false, message: 'Method Not Allowed' });
   }
@@ -29,10 +38,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         responder_name:users(full_name)
       `);
 
-      if (status && status !== 'all') query = query.eq('status', String(status));
-      if (department_id && department_id !== 'all') query = query.eq('department_id', Number(department_id));
-      if (category_id && category_id !== 'all') query = query.eq('category_id', Number(category_id));
-      if (priority && priority !== 'all') query = query.eq('priority', String(priority));
+      if (status && status !== 'all' && status !== '' && status !== 'undefined') {
+        query = query.eq('status', String(status));
+      }
+      if (department_id && department_id !== 'all' && department_id !== '' && department_id !== 'undefined' && !isNaN(Number(department_id)) && Number(department_id) > 0) {
+        query = query.eq('department_id', Number(department_id));
+      }
+      if (category_id && category_id !== 'all' && category_id !== '' && category_id !== 'undefined' && !isNaN(Number(category_id)) && Number(category_id) > 0) {
+        query = query.eq('category_id', Number(category_id));
+      }
+      if (priority && priority !== 'all' && priority !== '' && priority !== 'undefined') {
+        query = query.eq('priority', String(priority));
+      }
       if (keyword) {
         query = query.or(`title.ilike.%${keyword}%,content.ilike.%${keyword}%,tracking_code.ilike.%${keyword}%`);
       }
@@ -42,9 +59,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       items = (data || []).map((i: any) => ({
         ...i,
-        department_name: i.department_name?.name || 'N/A',
-        category_name: i.category_name?.name || 'N/A',
-        responder_name: i.responder_name?.full_name || 'N/A',
+        department_name: i.department_name ? (typeof i.department_name === 'object' ? i.department_name.name : i.department_name) : 'N/A',
+        category_name: i.category_name ? (typeof i.category_name === 'object' ? i.category_name.name : i.category_name) : 'N/A',
+        responder_name: i.responder_name ? (typeof i.responder_name === 'object' ? i.responder_name.full_name : i.responder_name) : 'N/A',
         sender: i.is_anonymous === 1 ? 'Ẩn danh' : (i.sender_name || 'Không rõ'),
         priority_str: i.priority === 'urgent' ? 'Khẩn cấp' : (i.priority === 'high' ? 'Quan trọng' : 'Bình thường'),
         status_str: i.status === 'pending' ? 'Mới tiếp nhận' : (i.status === 'processing' ? 'Đang xử lý' : (i.status === 'resolved' ? 'Đã giải quyết' : 'Từ chối'))
