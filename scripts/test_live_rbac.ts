@@ -32,7 +32,6 @@ function testLiveEndpoint(pathStr: string, token: string) {
 async function runLiveTest() {
   console.log('🚀 Đang kiểm tra deployment trực tiếp trên Vercel info.benhvienanphu.vn...');
   
-  // 1. Login to get token
   const postData = JSON.stringify({ username: 'admin', password: 'admin123' });
   const loginRes: any = await new Promise((resolve, reject) => {
     const req = https.request({
@@ -54,24 +53,13 @@ async function runLiveTest() {
     req.end();
   });
 
-  if (!loginRes.success) {
-    console.error('❌ Đăng nhập thất bại:', loginRes.message);
-    return;
-  }
-
   const token = loginRes.token;
-  console.log('✅ Đăng nhập Admin thành công. Token lấy được!');
 
-  // 2. Test /api/users endpoint
+  const catRes: any = await testLiveEndpoint('/api/categories', token);
+  console.log('HTTP Status /api/categories:', catRes.status);
+
   const usersRes: any = await testLiveEndpoint('/api/users', token);
-  console.log('HTTP Status /api/users:', usersRes.status);
-  console.log('Nội dung kết quả /api/users:', usersRes.data);
-
-  if (usersRes.status === 200 && usersRes.data?.success) {
-    console.log('\n🎉 THÀNH CÔNG RỰC RỠ: TÍNH NĂNG RBAC ĐÃ LIVE 100% TRÊN VERCEL!');
-  } else {
-    console.log('\n⏳ Vercel đang tự động build (khoảng 30-45 giây)...');
-  }
+  console.log('HTTP Status /api/users:', usersRes.status, usersRes.data || usersRes.raw);
 }
 
 runLiveTest();
