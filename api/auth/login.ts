@@ -1,13 +1,25 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { isSupabaseEnabled, supabase, getSqlite } from '../_db';
+import { applySecurityHeaders, checkRateLimit } from '../_security';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'anphu_info_benhvien_secret_key_2026_safe_jwt';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  applySecurityHeaders(res);
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, message: 'Method Not Allowed' });
+  }
+
+  // Brute-force protection: Max 10 attempts per 5 minutes per IP
+  if (!checkRateLimit(req, res, 'đăng nhập hệ thống', 10, 300000)) {
+    return;
   }
 
   try {

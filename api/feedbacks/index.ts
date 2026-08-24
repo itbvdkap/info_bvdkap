@@ -3,6 +3,8 @@ import { isSupabaseEnabled, supabase, runSqlite, querySqlite, getSqlite } from '
 import jwt from 'jsonwebtoken';
 import { dispatchMultiChannelNotifications } from '../../backend/src/services/notification.service';
 
+import { applySecurityHeaders, checkRateLimit, getClientIp } from '../_security';
+
 const JWT_SECRET = process.env.JWT_SECRET || 'anphu_info_benhvien_secret_key_2026_safe_jwt';
 
 function generateTrackingCode(): string {
@@ -12,8 +14,15 @@ function generateTrackingCode(): string {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // 1. POST /api/feedbacks (Public submit)
+  applySecurityHeaders(res);
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  // 1. POST /api/feedbacks (Public submit with rate limiting)
   if (req.method === 'POST') {
+    if (!checkRateLimit(req, res, 'gửi báo cáo', 5, 60000)) return;
     try {
       const {
         is_anonymous,

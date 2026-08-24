@@ -1,9 +1,21 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { isSupabaseEnabled, supabase, getSqlite } from '../_db';
+import { applySecurityHeaders, checkRateLimit } from '../_security';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  applySecurityHeaders(res);
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'GET') {
     return res.status(405).json({ success: false, message: 'Method Not Allowed' });
+  }
+
+  // Rate Limiting: Max 20 track requests per minute per IP
+  if (!checkRateLimit(req, res, 'tra cứu báo cáo', 20, 60000)) {
+    return;
   }
 
   try {
@@ -26,8 +38,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const d: any = data;
         item = {
           ...d,
-          department_name: d.department_name?.name || (Array.isArray(d.department_name) ? d.department_name[0]?.name : 'N/A'),
-          category_name: d.category_name?.name || (Array.isArray(d.category_name) ? d.category_name[0]?.name : 'N/A')
+          department_name: d.department_name ? (typeof d.department_name === 'object' ? d.department_name.name : d.department_name) : 'N/A',
+          category_name: d.category_name ? (typeof d.category_name === 'object' ? d.category_name.name : d.category_name) : 'N/A'
         };
       }
     } else {

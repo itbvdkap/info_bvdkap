@@ -1,5 +1,6 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { isSupabaseEnabled, supabase } from './_db';
+import { applySecurityHeaders, checkRateLimit } from './_security';
 import path from 'path';
 import fs from 'fs';
 
@@ -11,11 +12,10 @@ export const config = {
   }
 };
 
+const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.txt'];
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // CORS Headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  applySecurityHeaders(res);
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -25,6 +25,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ success: false, message: 'Method Not Allowed' });
   }
 
+  // Rate Limiting: Max 10 uploads per minute per IP
+  if (!checkRateLimit(req, res, 'tải file đính kèm', 10, 60000)) {
+    return;
+  }
+
   try {
     const { filename, mimetype, base64 } = req.body;
 
@@ -32,19 +37,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ success: false, message: 'Thiếu dữ liệu tệp hoặc nội dung mã hóa base64!' });
     }
 
+    const ext = path.extname(filename).toLowerCase() || '.bin';
+    if (!ALLOWED_EXTENSIONS.includes(ext)) {
+      return res.status(400).json({
+        success: false,
+        message: `🛑 Định dạng tệp ${ext} không được phép tải lên vì lý do an toàn bảo mật!`
+      });
+    }
+
     // Clean base64 string
     const base64Data = base64.replace(/^data:([A-Za-z-+\/]+);base64,/, '');
     const buffer = Buffer.from(base64Data, 'base64');
 
-    const ext = path.extname(filename) || '.bin';
+    if (buffer.length > 10 * 1024 * 1024) {
+      return res.status(400).json({ success: false, message: 'Dung lượng tệp vượt quá hạn mức tối đa 10MB!' });
+    }
+
     const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
     const randomChars = Math.random().toString(36).substring(2, 7);
-    const storagePath = `${dateStr}_${randomChars}${ext.toLowerCase()}`;
+    const storagePath = `${dateStr}_${randomChars}${ext}`;
     const contentType = mimetype || 'application/octet-stream';
 
     // 1. Supabase Storage Mode
     if (isSupabaseEnabled && supabase) {
-      // Ensure bucket 'info-attachments' exists
       try {
         await supabase.storage.createBucket('info-attachments', {
           public: true,

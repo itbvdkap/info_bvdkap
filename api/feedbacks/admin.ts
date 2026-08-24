@@ -2,13 +2,12 @@ import { VercelRequest, VercelResponse } from '@vercel/node';
 import { isSupabaseEnabled, supabase, querySqlite } from '../_db';
 import jwt from 'jsonwebtoken';
 
+import { applySecurityHeaders, checkRateLimit } from '../_security';
+
 const JWT_SECRET = process.env.JWT_SECRET || 'anphu_info_benhvien_secret_key_2026_safe_jwt';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // CORS Headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  applySecurityHeaders(res);
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -16,6 +15,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method !== 'GET') {
     return res.status(405).json({ success: false, message: 'Method Not Allowed' });
+  }
+
+  // Rate Limiting: Max 60 queries per minute per IP
+  if (!checkRateLimit(req, res, 'truy vấn quản trị', 60, 60000)) {
+    return;
   }
 
   try {
