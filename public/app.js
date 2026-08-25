@@ -418,8 +418,10 @@ function checkAuthAndInit() {
     loginForm.classList.add('hidden');
     dashboard.classList.remove('hidden');
 
+    const isAdminUser = adminUser?.role === 'admin' || adminUser?.username === 'admin';
+
     let roleTitle = 'Ban Giám Đốc Bệnh Viện';
-    if (adminUser?.role === 'admin') roleTitle = `🛡️ ${adminUser?.full_name || 'Admin Quản Trị'}`;
+    if (isAdminUser) roleTitle = `🛡️ ${adminUser?.full_name || 'Admin Quản Trị'}`;
     else if (adminUser?.role === 'leader') roleTitle = `🏛️ ${adminUser?.full_name || 'Ban Giám Đốc Bệnh Viện'}`;
     else if (adminUser?.role === 'dept_head') roleTitle = `🏥 ${adminUser?.full_name || 'Trưởng Khoa/Phòng'}`;
     else if (adminUser?.role === 'inspector') roleTitle = `🔍 ${adminUser?.full_name || 'Thanh Tra QLCL'}`;
@@ -427,10 +429,12 @@ function checkAuthAndInit() {
     document.getElementById('adminUserGreeting').innerText = roleTitle;
 
     if (btnUserMgmt) {
-      if (adminUser?.role === 'admin') {
+      if (isAdminUser) {
         btnUserMgmt.classList.remove('hidden');
+        btnUserMgmt.style.display = 'inline-flex';
       } else {
         btnUserMgmt.classList.add('hidden');
+        btnUserMgmt.style.display = 'none';
       }
     }
 
