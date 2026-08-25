@@ -46,11 +46,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(401).json({ success: false, message: 'Mật khẩu không chính xác!' });
     }
 
+    // Ensure role is explicitly set for existing users
+    let role = user.role;
+    if (!role || role === '') {
+      if (user.username === 'admin') role = 'admin';
+      else if (user.username === 'ban-giam-doc') role = 'leader';
+      else role = 'dept_head';
+    }
+
     const payload = {
       id: user.id,
       username: user.username,
       full_name: user.full_name,
-      role: user.role,
+      role,
       department_id: user.department_id
     };
 
